@@ -13,4 +13,3 @@ const server: fastify.FastifyInstance<
 
 server.register( identityService )
 
-const start 
