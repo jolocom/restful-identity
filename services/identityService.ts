@@ -1,25 +1,23 @@
-import * as fastify from 'fastify';
 import * as fp from 'fastify-plugin';
-import identity from '../plugins/identity'
-import interactions from '../plugins/interactions'
 
-export default fp(async (instance: fastify.FastifyInstance, opts, next) =>
+export default fp(async (instance: any, opts, next) =>
                   {
-                    instance.register(identity);
-                    instance.register(interactions);
+                    instance.get('/info', {},
+                      async (request, reply) =>
+                                 reply.send({date: new Date(),
+                                             works: true,
+                                             did: instance.identity.did})
+                    );
 
-                    instance.decorate('identity', identity);
-                    instance.decorate('interactions', interactions);
-
-                    instance.get('/info', {}, (request, reply) => {
-                      try {
-                        return reply.send('henlo');
-                      } catch (error) {
-                        request.log.error(error);
-                        return reply.send(500);
-                      }
-
-                    })
+                    instance.get('/authenticationRequest', {},
+                                 async (request, reply) => {
+                                   try {
+                                     const req = request.body;
+                                   } catch (error) {
+                                     request.log.error(error);
+                                     return reply.send(500)
+                                   }
+                                 });
 
                     next();
                   });
