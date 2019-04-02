@@ -17,9 +17,20 @@ export default fp(async (instance: any, opts: {service: {callbackURL: string}}, 
                                      return reply.send(authReq);
                                    } catch (error) {
                                      request.log.error(error);
-                                     return reply.send(500)
+                                     return reply.send(500);
                                    }
                                  });
+
+                    instance.post('/responseValidation', {},
+                                  async (request, reply) => {
+                                    try {
+                                      await instance.identity.validateJWT(request.body)
+                                      return reply.send(202);
+                                    } catch (error) {
+                                      request.log.error(error);
+                                      return reply.send(500);
+                                    }
+                                  });
 
                     next();
                   });
