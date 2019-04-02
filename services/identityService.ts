@@ -1,6 +1,6 @@
 import * as fp from 'fastify-plugin';
 
-export default fp(async (instance: any, opts, next) =>
+export default fp(async (instance: any, opts: {service: {callbackURL: string}}, next) =>
                   {
                     instance.get('/info', {},
                       async (request, reply) =>
@@ -12,7 +12,9 @@ export default fp(async (instance: any, opts, next) =>
                     instance.get('/authenticationRequest', {},
                                  async (request, reply) => {
                                    try {
-                                     const req = request.body;
+                                     const authReq = await instance.identity.create.interactionTokens.request.auth(
+                                       {callbackURL: opts.service.callbackURL}, 'secret');
+                                     return reply.send(authReq);
                                    } catch (error) {
                                      request.log.error(error);
                                      return reply.send(500)

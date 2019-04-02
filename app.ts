@@ -18,7 +18,7 @@ server.register( identity, {idArgs: {seed: new Buffer('a'.repeat(64), 'hex'),
                                      password: 'secret'}});
 server.register( interactions, {loki: {file: 'interactions.json',
                                        collections: ['interactions']}});
-server.register( identityService )
+server.register( identityService, {service: {callbackURL: 'http://localhost:3000'}})
 
 const start = async () => {
   try {
