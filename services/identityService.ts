@@ -14,6 +14,7 @@ export default fp(async (instance: any, opts: {service: {callbackURL: string}}, 
                                    try {
                                      const authReq = await instance.identity.create.interactionTokens.request.auth(
                                        {callbackURL: opts.service.callbackURL}, 'secret');
+                                     instance.loki.interactions.insert(authReq);
                                      return reply.send(authReq);
                                    } catch (error) {
                                      request.log.error(error);
@@ -21,16 +22,26 @@ export default fp(async (instance: any, opts: {service: {callbackURL: string}}, 
                                    }
                                  });
 
-                    instance.post('/responseValidation', {},
+                    instance.post('/validateResponse', {},
                                   async (request, reply) => {
                                     try {
-                                      await instance.identity.validateJWT(request.body)
+                                      await instance.identity.validateJWT(request.body);
                                       return reply.send(202);
                                     } catch (error) {
                                       request.log.error(error);
                                       return reply.send(500);
                                     }
                                   });
+
+                    instance.get('/paymentRequest', {},
+                                 async (request, reply) => {
+                                   try {
+                                     return reply.send(200);
+                                   } catch (error) {
+                                     request.log.error(error);
+                                     return reply.send(500);
+                                   }
+                                 })
 
                     next();
                   });
