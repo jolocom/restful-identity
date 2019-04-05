@@ -4,13 +4,14 @@ import * as fp from 'fastify-plugin';
 import { JolocomLib } from 'jolocom-lib';
 import { IdentityWallet } from 'jolocom-lib/js/identityWallet/identityWallet';
 
-export default fp(async (instance: fastify.FastifyInstance, opts: {idArgs: {seed: any, password: string }}, next) => {
-  const vaultedKeyProvider = new JolocomLib.KeyProvider(opts.idArgs.seed, opts.idArgs.password);
+export default fp(async (instance: fastify.FastifyInstance, opts: {seed?: any, password: string }, next) => {
+  const seed = opts.seed;
+  const vaultedKeyProvider = new JolocomLib.KeyProvider(seed, opts.password);
   const registry = JolocomLib.registries.jolocom.create();
 
   const identityWallet = await registry.authenticate(vaultedKeyProvider, {
     derivationPath: JolocomLib.KeyTypes.jolocomIdentityKey,
-    encryptionPass: opts.idArgs.password,
+    encryptionPass: opts.password,
   }).catch(err =>
            instance.log.error({ actor: "identity" }, err)
           ) as IdentityWallet;

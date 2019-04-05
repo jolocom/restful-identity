@@ -10,7 +10,11 @@ const server: fastify.FastifyInstance<
   ServerResponse
 > = fastify({logger:true});
 
-server.register( app, {service: {callbackURL: 'http://localhost:3000'}})
+server.register( app, {idArgs: {seed: new Buffer('a'.repeat(64), 'hex'),
+                                password: 'secret'},
+                       loki: {file: 'db.json',
+                              collections: ['interactions']},
+                       service: {callbackURL: 'http://localhost:3000'}})
 
 const start = async () => {
   try {

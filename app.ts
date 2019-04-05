@@ -8,11 +8,17 @@ import interactions from './plugins/interactions';
 // route/app plugin
 import identityService from './services/identityService';
 
-export default fp(async (instance: any, opts, next) => {
-  instance.register( identity, {idArgs: {seed: new Buffer('a'.repeat(64), 'hex'),
-                                       password: 'secret'}});
-  instance.register( interactions, {loki: {file: 'interactions.json',
-                                         collections: ['interactions']}});
-  instance.register( identityService, {service: {callbackURL: 'http://localhost:3000'}})
+export default fp(async (instance: any, opts: {
+  idArgs: {seed: any,
+           password: string},
+  loki: {file: string,
+         collections: string[]},
+  service: {callbackURL: string}
+}, next) => {
 
+  instance.register(identity, opts.idArgs);
+  instance.register(interactions, opts.loki);
+  instance.register(identityService, opts.service);
+
+  next();
 })

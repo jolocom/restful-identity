@@ -9,24 +9,27 @@
   "scripts": {
     "test": "tap test/**/*.test.js",
     "build": "rm -rf dist && tsc ./",
-    "start": "fastify start -l info ./dist/app.js",
-    "dev": "ts-node --files ./app.ts"
+    "start": "fastify start -l info ./dist/server.js",
+    "dev": "ts-node --files ./server.ts"
   },
   "keywords": [],
   "author": "Jolocom",
   "license": "ISC",
   "dependencies": {
     "fastify": "^2.0.0",
-    "fastify-autoload": "^0.6.0",
     "fastify-cli": "^1.0.0",
     "fastify-plugin": "^1.5.0",
     "jolocom-lib": "^2.3.0",
     "lokijs": "^1.5.6"
   },
   "devDependencies": {
+    "@types/jest": "^24.0.11",
     "@types/lokijs": "^1.5.2",
     "@types/node": "^11.13.0",
-    "tap": "^12.5.3",
+    "@types/supertest": "^2.0.7",
+    "jest": "^24.7.1",
+    "supertest": "^4.0.2",
+    "ts-jest": "^24.0.1",
     "ts-node": "^8.0.3",
     "typescript": "^3.4.1"
   }
