@@ -2,7 +2,7 @@
 import * as fastify from 'fastify';
 import { Server, IncomingMessage, ServerResponse } from "http";
 
-import app from './app';
+import app from './src/app';
 
 const server: fastify.FastifyInstance<
   Server,

@@ -1,5 +1,5 @@
 module.exports = {
-    rootDir: ".",
+    rootDir: "test",
     testMatch: ["**/test/**/*.test.(ts|tsx|js|jsx)"],
     verbose: false,
     clearMocks: true,
