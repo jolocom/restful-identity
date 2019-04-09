@@ -1,8 +1,12 @@
 import * as fp from 'fastify-plugin';
-import { JolocomLib } from 'jolocom-lib';
+import identity from '../plugins/identity';
+import interactions from '../plugins/interactions';
 
-export default fp(async (instance: any, opts: {callbackURL: string}, next) =>
+export default fp(async (instance: any, opts: {callbackURL: string, idArgs: {seed: any, password: string}}, next) =>
                   {
+                    instance.register(identity, opts.idArgs);
+                    instance.register(interactions, {});
+
                     instance.get('/info', {},
                       async (request, reply) =>
                                  reply.send({date: new Date(),

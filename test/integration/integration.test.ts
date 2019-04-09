@@ -1,6 +1,7 @@
 import * as fastify from 'fastify';
 import {JolocomLib} from 'jolocom-lib';
 import app from '../../src/app';
+import identityService from '../../src/services/identityService';
 import { IdentityWallet } from 'jolocom-lib/js/identityWallet/identityWallet';
 import { Server, IncomingMessage, ServerResponse } from "http";
 
@@ -10,7 +11,7 @@ const vkp = new JolocomLib.KeyProvider(seed, pword);
 
 const reg = JolocomLib.registries.jolocom.create();
 
-const authattr = {callbackURL: 'http://localhost:3000'};
+const authCallback = 'http://localhost:3000';
 
 const fastify_instance: fastify.FastifyInstance<
   Server,
@@ -18,9 +19,7 @@ const fastify_instance: fastify.FastifyInstance<
   ServerResponse
 > = fastify({logger:true});
 
-fastify_instance.register(app, {idArgs: {seed: new Buffer('a'.repeat(64), 'hex'),
-                               password: pword},
-                      service: authattr});
+fastify_instance.register(identityService, {callbackURL: authCallback, idArgs: {seed: new Buffer('a'.repeat(64), 'hex'), password: pword}});
 
 let idw: IdentityWallet;
 
@@ -47,7 +46,7 @@ describe('identity interaction integration test', () => {
 
     const resultParsed = JolocomLib.parse.interactionToken.fromJWT(result.payload);
 
-    const response = await idw.create.interactionTokens.response.auth(authattr, pword, resultParsed);
+    const response = await idw.create.interactionTokens.response.auth({callbackURL: authCallback}, pword, resultParsed);
     const responseJWT = response.encode();
 
     await fastify_instance.inject({method: 'POST', url: '/validateResponse', payload: {token: responseJWT}})

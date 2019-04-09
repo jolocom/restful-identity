@@ -2,7 +2,7 @@
 import * as fastify from 'fastify';
 import { Server, IncomingMessage, ServerResponse } from "http";
 
-import app from './src/app';
+import identityService from './src/services/identityService';
 
 const server: fastify.FastifyInstance<
   Server,
@@ -10,9 +10,9 @@ const server: fastify.FastifyInstance<
   ServerResponse
 > = fastify({logger:true});
 
-server.register( app, {idArgs: {seed: new Buffer('a'.repeat(64), 'hex'),
-                                password: 'secret'},
-                       service: {callbackURL: 'http://localhost:3000'}})
+server.register(identityService, {callbackURL: 'http://localhost:3000',
+                                  idArgs: {seed: new Buffer('a'.repeat(64), 'hex'),
+                                           password: 'secret'}});
 
 const start = async () => {
   try {
