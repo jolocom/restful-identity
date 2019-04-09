@@ -1,15 +1,11 @@
 import * as fp from 'fastify-plugin';
-import * as loki from 'lokijs';
 
-export default fp(async (fastify, opts: {file: string, collections: string[]}, next) => {
-  const db = new loki(opts.file);
+export default fp(async (fastify, opts, next) => {
+  const interactions = new Map();
 
-  const collections = opts.collections.map(collectionName => ({[collectionName]: db.addCollection(collectionName)}))
-    .reduce((acc, curr) => ({...acc, ...curr}), {});
-
-  fastify.decorate('loki', collections);
-
-  fastify.log.info('Created collections: ' + collections);
+  fastify.decorate('interactions', {start: token => interactions.set(token.nonce, token),
+                                    findMatch: token => interactions.get(token.nonce),
+                                    finish: token => interactions.delete(token.nonce)});
 
   next();
 });

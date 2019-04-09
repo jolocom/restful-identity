@@ -1,4 +1,5 @@
 import * as fp from 'fastify-plugin';
+import { JolocomLib } from 'jolocom-lib';
 
 export default fp(async (instance: any, opts: {callbackURL: string}, next) =>
                   {
@@ -13,44 +14,46 @@ export default fp(async (instance: any, opts: {callbackURL: string}, next) =>
                                  async (request, reply) => {
                                    try {
                                      const authReq = await instance.identity.create.interactionTokens.request.auth(
-                                       {callbackURL: opts.callbackURL}, 'secret');
-                                     instance.loki.interactions.insert(authReq);
+                                       {callbackURL: opts.callbackURL}, 'henlmao');
+                                     instance.interactions.start(authReq);
                                      return reply.send(authReq.encode());
                                    } catch (error) {
                                      request.log.error(error);
-                                     return reply.send(500);
+                                     return reply.code(500);
                                    }
                                  });
 
                     instance.post('/validateResponse', {},
                                   async (request, reply) => {
                                     try {
-                                      const req = await instance.loki.interactions.find({})
-                                      await instance.identity.validateJWT(request.body);
-                                      return reply.send(202);
+                                      const resp = JolocomLib.parse.interactionToken.fromJWT(request.body.token);
+                                      const req = instance.interactions.findMatch(resp);
+                                      await instance.identity.validateJWT(resp, req);
+                                      instance.interactions.finish(req);
+                                      return reply.code(202);
                                     } catch (error) {
                                       request.log.error(error);
-                                      return reply.send(500);
+                                      return reply.code(500);
                                     }
                                   });
 
                     instance.get('/paymentRequest', {},
                                  async (request, reply) => {
                                    try {
-                                     return reply.send(200);
+                                     return reply.code(200);
                                    } catch (error) {
                                      request.log.error(error);
-                                     return reply.send(500);
+                                     return reply.code(500);
                                    }
                                  });
 
                     instance.post('/paymentConfirmation', {},
                                   async (request, reply) => {
                                     try {
-                                      return reply.send(200);
+                                      return reply.code(200);
                                     } catch (error) {
                                       request.log.error(error);
-                                      return reply.send(500);
+                                      return reply.code(500);
                                     }
                                   });
 

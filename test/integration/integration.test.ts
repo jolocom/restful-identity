@@ -1,5 +1,4 @@
 import * as fastify from 'fastify';
-import * as request from 'supertest';
 import {JolocomLib} from 'jolocom-lib';
 import app from '../../src/app';
 import { IdentityWallet } from 'jolocom-lib/js/identityWallet/identityWallet';
@@ -13,16 +12,14 @@ const reg = JolocomLib.registries.jolocom.create();
 
 const authattr = {callbackURL: 'http://localhost:3000'};
 
-const server: fastify.FastifyInstance<
+const fastify_instance: fastify.FastifyInstance<
   Server,
   IncomingMessage,
   ServerResponse
 > = fastify({logger:true});
 
-server.register(app, {idArgs: {seed: new Buffer('a'.repeat(64), 'hex'),
+fastify_instance.register(app, {idArgs: {seed: new Buffer('a'.repeat(64), 'hex'),
                                password: pword},
-                      loki: {file: 'db.json',
-                             collections: ['interactions']},
                       service: authattr});
 
 let idw: IdentityWallet;
@@ -31,7 +28,7 @@ describe('identity interaction integration test', () => {
   beforeAll(async () => {
     jest.setTimeout(100000);
 
-    await server.ready();
+    await fastify_instance.ready();
 
     //await JolocomLib.util.fuelKeyWithEther(vkp.getPublicKey({
     //  derivationPath: JolocomLib.KeyTypes.ethereumKey,
@@ -45,12 +42,14 @@ describe('identity interaction integration test', () => {
   });
 
   it('completes the authentication flow', async () => {
-    const result = await request(server).get('/authenticationRequest');
-    const resultParsed = JolocomLib.parse.interactionToken.fromJWT(result.body)
+    const result = await fastify_instance.inject({method: 'GET', url: '/authenticationRequest'});
+    expect(result.payload).not.toBe(500);
+
+    const resultParsed = JolocomLib.parse.interactionToken.fromJWT(result.payload);
 
     const response = await idw.create.interactionTokens.response.auth(authattr, pword, resultParsed);
     const responseJWT = response.encode();
 
-    await request(server).post('/validateResponse').send(responseJWT).expect(202);
+    await fastify_instance.inject({method: 'POST', url: '/validateResponse', payload: {token: responseJWT}}).then(resp => expect(resp.statusCode).toBe(202));
   })
 })

@@ -11,13 +11,11 @@ import identityService from './services/identityService';
 export default fp(async (instance: any, opts: {
   idArgs: {seed: any,
            password: string},
-  loki: {file: string,
-         collections: string[]},
   service: {callbackURL: string}
 }, next) => {
 
   instance.register(identity, opts.idArgs);
-  instance.register(interactions, opts.loki);
+  instance.register(interactions, opts);
   instance.register(identityService, opts.service);
 
   next();
