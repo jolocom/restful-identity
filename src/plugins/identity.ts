@@ -25,7 +25,7 @@ export default fp(async (instance: fastify.FastifyInstance, opts: {seed?: any, p
                                  await identityWallet.create.interactionTokens.request.auth({callbackURL: callbackURL}, password),
                                  getPaymentRequest: async () => {},
                                  parseJWT: token => JolocomLib.parse.interactionToken.fromJWT(token),
-                                 validateJTW: async (token, oldToken?) => await identityWallet.validateJWT(token, oldToken)})
+                                 validateJWT: async (token, oldToken?) => await identityWallet.validateJWT(token, oldToken)})
 
   instance.log.info('identity established with did: ' + identityWallet.did);
 

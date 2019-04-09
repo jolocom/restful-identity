@@ -50,6 +50,7 @@ describe('identity interaction integration test', () => {
     const response = await idw.create.interactionTokens.response.auth(authattr, pword, resultParsed);
     const responseJWT = response.encode();
 
-    await fastify_instance.inject({method: 'POST', url: '/validateResponse', payload: {token: responseJWT}}).then(resp => expect(resp.statusCode).toBe(202));
+    await fastify_instance.inject({method: 'POST', url: '/validateResponse', payload: {token: responseJWT}})
+      .then(resp => expect(resp.statusCode).toBe(204));
   })
 })
