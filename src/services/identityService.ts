@@ -7,14 +7,13 @@ export default fp(async (instance: any, opts: {callbackURL: string}, next) =>
                       async (request, reply) =>
                                  reply.send({date: new Date(),
                                              works: true,
-                                             did: instance.identity.did})
+                                             did: instance.identity.getDid()})
                     );
 
                     instance.get('/authenticationRequest', {},
                                  async (request, reply) => {
                                    try {
-                                     const authReq = await instance.identity.create.interactionTokens.request.auth(
-                                       {callbackURL: opts.callbackURL}, 'henlmao');
+                                     const authReq = await instance.identity.getAuthRequest(opts.callbackURL);
                                      instance.interactions.start(authReq);
                                      return reply.send(authReq.encode());
                                    } catch (error) {
@@ -26,7 +25,7 @@ export default fp(async (instance: any, opts: {callbackURL: string}, next) =>
                     instance.post('/validateResponse', {},
                                   async (request, reply) => {
                                     try {
-                                      const resp = JolocomLib.parse.interactionToken.fromJWT(request.body.token);
+                                      const resp = instance.identity.parseJWT(request.body.token);
                                       const req = instance.interactions.findMatch(resp);
                                       await instance.identity.validateJWT(resp, req);
                                       instance.interactions.finish(req);
