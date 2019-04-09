@@ -1,6 +1,5 @@
 import * as fastify from 'fastify';
 import {JolocomLib} from 'jolocom-lib';
-import app from '../../src/app';
 import identityService from '../../src/services/identityService';
 import { IdentityWallet } from 'jolocom-lib/js/identityWallet/identityWallet';
 import { Server, IncomingMessage, ServerResponse } from "http";
