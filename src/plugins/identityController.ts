@@ -8,7 +8,6 @@ export default fp(async (instance: any, opts: {callbackURL: string, idArgs: {see
                     instance.register(interactions, {});
 
                     const get_info = _ => {return {date: new Date(),
-                                                   works: true,
                                                    did: instance.identity.getDid()}};
 
                     const get_authn_req = async _ => {const req = await instance.identity.getAuthRequest(opts.callbackURL);
