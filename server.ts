@@ -1,8 +1,12 @@
 
 import * as fastify from 'fastify';
+import { config } from 'dotenv';
 import { Server, IncomingMessage, ServerResponse } from "http";
+import { books } from './bookList';
 
-import identityService from './src/services/identityService';
+import libraryService from './src/services/libraryService';
+
+config();
 
 const server: fastify.FastifyInstance<
   Server,
@@ -10,9 +14,14 @@ const server: fastify.FastifyInstance<
   ServerResponse
 > = fastify({logger:true});
 
-server.register(identityService, {callbackURL: 'http://localhost:3000',
-                                  idArgs: {seed: new Buffer('a'.repeat(64), 'hex'),
-                                           password: 'secret'}});
+const options = {
+  bookList: books,
+  idArgs: {seed: new Buffer(process.env.SEED, 'hex'),
+           password: process.env.PASSWORD},
+  callbackURL: 'http://localhost:3000',
+}
+
+server.register(libraryService, options);
 
 const start = async () => {
   try {

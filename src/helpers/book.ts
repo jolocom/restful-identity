@@ -1,28 +1,26 @@
 import * as ISBN from 'node-isbn';
-import {Book} from './types';
+import {Book, BookIDArgs} from './types';
 import { JolocomLib } from 'jolocom-lib';
 import { IdentityWallet } from 'jolocom-lib/js/identityWallet/identityWallet';
 import * as OHash from 'object-hash';
 import { IVaultedKeyProvider } from 'jolocom-lib/js/vaultedKeyProvider/types';
 
-export const getBook = async (isbn: number): Promise<Book> => {
+const getBook = async (isbn: number): Promise<Book> => {
   const simp = await ISBN.resolve(isbn);
   return {title: simp.title,
           authors: simp.authors,
           isbn: isbn}
 }
 
-export const hashBook = (book: Book, salt?: Buffer): string =>
-  OHash([book, salt ? salt : 'default']);
+const hashBook = (bookArgs: BookIDArgs): string =>
+  OHash(bookArgs);
 
-export const getBookVKP = (book: Book, pass: string, salt?: Buffer): IVaultedKeyProvider =>
-  new JolocomLib.KeyProvider(Buffer.from(hashBook(book,
-                                                  salt
-                                                 )),
-                             pass
+const getBookVKP = (bookArgs: BookIDArgs, password: string): IVaultedKeyProvider =>
+  new JolocomLib.KeyProvider(Buffer.from(hashBook(bookArgs)),
+                             password
                             );
 
-export const getBookId = async (book: Book, pass: string, salt?: Buffer): Promise<IdentityWallet> =>
+export const getBookId = async (isbn: number, pass: string, n?: number): Promise<IdentityWallet> =>
   JolocomLib.registries.jolocom.create().authenticate(getBookVKP(book,
                                                                  pass,
                                                                  salt
