@@ -2,37 +2,77 @@ import * as fp from 'fastify-plugin';
 import identity from '../plugins/identity';
 import interactions from '../plugins/interactions';
 
-export default fp(async (instance: any, opts: {callbackURL: string, idArgs: {seed: any, password: string}}, next) =>
-                  {
-                    instance.register(identity, opts.idArgs);
-                    instance.register(interactions, {});
+import {
+    IAuthenticationAttrs,
+    IPaymentRequestAttrs
+} from 'jolocom-lib/js/interactionTokens/interactionTokens.types'
 
-                    const get_info = _ => {return {date: new Date(),
-                                                   did: instance.identity.getDid()}};
+import {
+    IDParameters,
+    ImplementationInstance
+} from './types';
+import { JWTEncodable, JSONWebToken } from 'jolocom-lib/js/interactionTokens/JSONWebToken';
 
-                    const get_authn_req = async _ => {const req = await instance.identity.getAuthRequest(opts.callbackURL);
-                                                      instance.interactions.start(req);
-                                                      return req.encode();}
+export default fp(async (instance: ImplementationInstance, opts: { idArgs: IDParameters }, next) => {
+    const pass = opts.idArgs.idArgs.password
+    instance.register(identity, opts.idArgs);
+    instance.register(interactions, {});
 
-                    const get_payment_req = async _ => false;
+    const get_info = _ => {
+        return {
+            date: instance.identity.didDocument.created,
+            did: instance.identity.did
+        }
+    };
 
-                    const is_resp_valid = async response => {const resp = instance.identity.parseJWT(response);
-                                                             const req = instance.interactions.findMatch(resp);
-                                                             try {
-                                                               await instance.identity.validateJWT(resp, req)
-                                                               instance.interactions.finish(req);
-                                                               return true;
-                                                             } catch (err) {
-                                                               instance.log.error({actor: 'identity controller'}, err);
-                                                               return false;
-                                                             }};
+    const get_authn_req = async (reqArgs: IAuthenticationAttrs) => {
+        const req = await
+            instance.identity.create.interactionTokens.request.auth(
+                reqArgs,
+                pass
+            );
+        instance.interactions.start(req);
+        return req;
+    }
 
-                    instance.decorate('getPaymentRequest', async _ => false);
+    const get_payment_req = async (reqArgs: IPaymentRequestAttrs) => {
+        const req = await instance.identity.create.interactionTokens.request.payment(reqArgs,
+            pass)
+        instance.interactions.start(req)
+        return req;
+    }
 
-                    instance.decorate('idC', {getInfo: get_info,
-                                              getAuthenticationRequest: get_authn_req,
-                                              getPaymentRequest: get_payment_req,
-                                              isInteractionResponseValid: is_resp_valid});
+    const get_auth_resp = async (reqArgs: IAuthenticationAttrs, req: JSONWebToken<JWTEncodable>) => {
+        const resp = await instance.identity.create.interactionTokens.response.auth(reqArgs,
+            pass,
+            req
+        )
+        return resp;
+    }
 
-                    next();
-                  });
+    const is_resp_valid = async (response: JSONWebToken<JWTEncodable>): Promise<boolean> => {
+        const req = instance.interactions.findMatch(response);
+        try {
+            await instance.identity.validateJWT(response, req)
+            instance.interactions.finish(req);
+            return true;
+        } catch (err) {
+            instance.log.error({ actor: 'identity controller' }, err);
+            return false;
+        }
+    }
+
+    instance.decorate('idController', {
+        getInfo: get_info,
+        request: {
+            auth: get_authn_req,
+            payment: get_payment_req
+        },
+        response: {
+            auth: get_auth_resp
+        },
+        isInteractionResponseValid: is_resp_valid
+    });
+
+    next();
+});
