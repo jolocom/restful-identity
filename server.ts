@@ -8,12 +8,19 @@ const server: fastify.FastifyInstance<
     Server,
     IncomingMessage,
     ServerResponse
-> = fastify({ logger: true });
+> = fastify({
+    logger: true,
+    pluginTimeout: 60000
+});
 
 server.register(identityService, {
     idArgs: {
-        seed: Buffer.from('a'.repeat(64), 'hex'),
-        password: 'secret'
+        seed: Buffer.from('9'.repeat(64), 'hex'),
+        password: 'dsakt'
+    },
+    dep: {
+        endpoint: 'https://r2bapi.dltstax.net/',
+        contract: '0x50ee3ad2042a16c9a9b75b447947c7a7d2c53e29'
     }
 });
 
