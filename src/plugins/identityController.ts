@@ -14,9 +14,9 @@ import {
 import { JWTEncodable, JSONWebToken } from 'jolocom-lib/js/interactionTokens/JSONWebToken';
 import { JolocomLib } from 'jolocom-lib';
 
-export default fp(async (instance: ImplementationInstance, opts: { idArgs: IDParameters }, next) => {
-    const pass = opts.idArgs.idArgs.password
-    instance.register(identity, opts.idArgs);
+export default fp(async (instance: ImplementationInstance, opts: IDParameters, next) => {
+    const pass = opts.idArgs.password
+    instance.register(identity, opts);
     instance.register(interactions, {});
 
     const get_info = _ => {

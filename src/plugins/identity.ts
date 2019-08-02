@@ -37,7 +37,7 @@ const httpAgent = {
 
 const get_vkp = (params?: IDParameters): IVaultedKeyProvider => {
     if (params && params.idArgs) {
-        return new JolocomLib.KeyProvider(params.idArgs.seed);
+        return JolocomLib.KeyProvider.fromSeed(params.idArgs.seed, params.idArgs.password);
     }
 
     try {

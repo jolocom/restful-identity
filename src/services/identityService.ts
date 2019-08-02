@@ -76,11 +76,11 @@ const validateSchema = {
     type: "string"
 }
 
-export default fp(async (instance: ControllerInstance, opts: { idArgs: IDParameters }, next) => {
+export default fp(async (instance: ControllerInstance, opts: IDParameters, next) => {
     instance.register(identityController, opts);
 
     instance.get('/did', {},
-        (request, reply) => reply.send(instance.idController.did()));
+        async (request, reply) => reply.send(instance.idController.did()));
 
     instance.post('/request/authentication', { schema: { body: authReqSchema } },
         async (request, reply) => instance.idController.request.auth(request.body)
@@ -91,15 +91,15 @@ export default fp(async (instance: ControllerInstance, opts: { idArgs: IDParamet
             }));
 
     instance.post('/request/payment', { schema: { body: paymentReqSchema } },
-        async (request, reply) => await instance.idController.request.payment(request.body)
+        async (request, reply) => instance.idController.request.payment(request.body)
             .then(paymentReq => reply.send(paymentReq))
             .catch(error => {
                 request.log.error(error);
                 reply.code(500)
             }));
 
-    instance.post('/validate', {},
-        async (request, reply) => await instance.idController.validate(request.body)
+    instance.post('/validate', { schema: { body: validateSchema } },
+        async (request, reply) => instance.idController.validate(request.body)
             .then(valid => reply.code(200).send(valid ? 'true' : 'false'))
             .catch(error => {
                 request.log.error(error);

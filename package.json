@@ -8,7 +8,7 @@
   },
   "scripts": {
     "test": "NODE_ENV=test npx jest --verbose --runInBand",
-    "build": "rm -rf dist && tsc ./",
+    "build": "rm -rf dist && tsc -p .",
     "start": "fastify start -l info ./dist/server.js",
     "dev": "ts-node --files ./server.ts"
   },
@@ -20,6 +20,7 @@
     "fastify": "^2.0.0",
     "fastify-cli": "^1.0.0",
     "fastify-plugin": "^1.5.0",
+    "hardware_key_provider": "^0.4.5",
     "jolocom-lib": "^3.0.0",
     "jolocom-lib-stax-connector": "^0.3.1"
   },
