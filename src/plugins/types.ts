@@ -7,6 +7,7 @@ import {
 } from 'jolocom-lib/js/interactionTokens/JSONWebToken';
 import { IAuthenticationAttrs, IPaymentRequestAttrs } from 'jolocom-lib/js/interactionTokens/interactionTokens.types';
 import { Authentication } from 'jolocom-lib/js/interactionTokens/authentication';
+import { PaymentRequest } from 'jolocom-lib/js/interactionTokens/paymentRequest'
 
 
 export interface InteractionStore {
@@ -18,14 +19,14 @@ export interface InteractionStore {
 export interface ControllerInstance extends fastify.FastifyInstance {
     idController: {
         request: {
-            auth: async (reqArgs: IAuthenticationAttrs) => Promise<Authentication>,
-            payment: async (reqArgs: IPaymentRequestAttrs) => Promise<PaymentRequest>
+            auth: (reqArgs: IAuthenticationAttrs) => Promise<JSONWebToken<Authentication>>,
+            payment: (reqArgs: IPaymentRequestAttrs) => Promise<JSONWebToken<PaymentRequest>>
         },
         response: {
-            auth: async (reqArgs: IAuthenticationAttrs, req: JSONWebToken<JWTEncodable>) => Promise<Authentication>
+            auth: (reqArgs: IAuthenticationAttrs, req: JSONWebToken<JWTEncodable>) => Promise<JSONWebToken<Authentication>>
         },
-        isInteractionResponseValid: async (response: JSONWebToken<JWTEncodable>) => Promise<boolean>,
-        getInfo: () => { date: Date, did: string }
+        validate: (response: JSONWebToken<JWTEncodable>) => Promise<boolean>,
+        did: () => { date: Date, did: string }
     }
 }
 

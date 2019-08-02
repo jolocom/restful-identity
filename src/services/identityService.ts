@@ -73,34 +73,25 @@ const paymentReqSchema = {
 }
 
 const validateSchema = {
-    additionalProperties: false,
-    properties: {
-        token: {
-            type: "string"
-        }
-    },
-    required: [
-        "token",
-    ],
-    type: "object"
+    type: "string"
 }
 
 export default fp(async (instance: ControllerInstance, opts: { idArgs: IDParameters }, next) => {
     instance.register(identityController, opts);
 
     instance.get('/did', {},
-        (request, reply) => reply.send(instance.idController.getInfo()));
+        (request, reply) => reply.send(instance.idController.did()));
 
-    instance.get('/authentication', {},
-        async (request, reply) => instance.idController.request.auth()
-            .then(authReq => reply.send(authReq))
+    instance.post('/request/authentication', { schema: { body: authReqSchema } },
+        async (request, reply) => instance.idController.request.auth(request.body)
+            .then(authReq => reply.send(authReq.encode()))
             .catch(error => {
                 request.log.error(error);
                 reply.code(500)
             }));
 
-    instance.get('/payment', {},
-        async (request, reply) => await instance.idController.request.payment()
+    instance.post('/request/payment', { schema: { body: paymentReqSchema } },
+        async (request, reply) => await instance.idController.request.payment(request.body)
             .then(paymentReq => reply.send(paymentReq))
             .catch(error => {
                 request.log.error(error);
@@ -108,8 +99,8 @@ export default fp(async (instance: ControllerInstance, opts: { idArgs: IDParamet
             }));
 
     instance.post('/validate', {},
-        async (request, reply) => await instance.idC.isInteractionResponseValid(request.body.token)
-            .then(valid => { valid ? reply.code(204) : reply.code(409).send('Validation Failed') })
+        async (request, reply) => await instance.idController.validate(request.body)
+            .then(valid => reply.code(200).send(valid ? 'true' : 'false'))
             .catch(error => {
                 request.log.error(error);
                 reply.code(500)

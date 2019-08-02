@@ -12,6 +12,7 @@ import {
     ImplementationInstance
 } from './types';
 import { JWTEncodable, JSONWebToken } from 'jolocom-lib/js/interactionTokens/JSONWebToken';
+import { JolocomLib } from 'jolocom-lib';
 
 export default fp(async (instance: ImplementationInstance, opts: { idArgs: IDParameters }, next) => {
     const pass = opts.idArgs.idArgs.password
@@ -50,10 +51,11 @@ export default fp(async (instance: ImplementationInstance, opts: { idArgs: IDPar
         return resp;
     }
 
-    const is_resp_valid = async (response: JSONWebToken<JWTEncodable>): Promise<boolean> => {
-        const req = instance.interactions.findMatch(response);
+    const is_resp_valid = async (response: string): Promise<boolean> => {
+        const resp = JolocomLib.parse.interactionToken.fromJWT(response)
+        const req = instance.interactions.findMatch(resp);
         try {
-            await instance.identity.validateJWT(response, req)
+            await instance.identity.validateJWT(resp, req)
             instance.interactions.finish(req);
             return true;
         } catch (err) {
@@ -63,7 +65,7 @@ export default fp(async (instance: ImplementationInstance, opts: { idArgs: IDPar
     }
 
     instance.decorate('idController', {
-        getInfo: get_info,
+        did: get_info,
         request: {
             auth: get_authn_req,
             payment: get_payment_req
@@ -71,7 +73,7 @@ export default fp(async (instance: ImplementationInstance, opts: { idArgs: IDPar
         response: {
             auth: get_auth_resp
         },
-        isInteractionResponseValid: is_resp_valid
+        validate: is_resp_valid
     });
 
     next();
