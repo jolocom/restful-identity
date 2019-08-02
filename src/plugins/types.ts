@@ -33,7 +33,6 @@ export interface ControllerInstance extends fastify.FastifyInstance {
 export interface IDParameters {
     idArgs?: { seed: Buffer; password: string }
     dep?: { endpoint: string; contract: string }
-    offline: boolean
 }
 
 export interface ImplementationInstance extends fastify.FastifyInstance {
