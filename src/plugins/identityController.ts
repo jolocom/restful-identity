@@ -44,8 +44,8 @@ export default fp(async (instance: ImplementationInstance, opts: IDParameters, n
         return req;
     }
 
-    const get_auth_resp = async (reqArgs: IAuthenticationAttrs, req: JSONWebToken<JWTEncodable>) => {
-        const resp = await instance.identity.create.interactionTokens.response.auth(reqArgs,
+    const get_auth_resp = async (respArgs: IAuthenticationAttrs, req: JSONWebToken<JWTEncodable>) => {
+        const resp = await instance.identity.create.interactionTokens.response.auth(respArgs,
             pass,
             req
         )
@@ -65,29 +65,27 @@ export default fp(async (instance: ImplementationInstance, opts: IDParameters, n
         }
     }
 
-    const get_keycloak_creds = async (args: IKeycloakAtrrs) =>
+    const get_keycloak_creds = async (respArgs: IKeycloakAtrrs, req: JSONWebToken<JWTEncodable>) =>
         instance.identity.create.interactionTokens.response.share({
-            callbackURL: args.callbackURL,
+            callbackURL: respArgs.callbackURL,
             suppliedCredentials: [
-                {
-                    await instance.identity.create.signedCredential({
-                        metadata: claimsMetadata.name,
-                        claim: {
-                            familyName: args.name,
-                            givenName: args.name
-                        },
-                        subject: instance.identity.did
-                    }, pass),
-                    await instance.identity.create.signedCredential({
-                        metadata: claimsMetadata.emailAddress,
-                        claim: {
-                            email: args.email
-                        },
-                        subject: instance.identity.did
-                    }, pass)
-                }
+                await instance.identity.create.signedCredential({
+                    metadata: claimsMetadata.name,
+                    claim: {
+                        familyName: respArgs.name,
+                        givenName: respArgs.name
+                    },
+                    subject: instance.identity.did
+                }, pass).then(cred => cred.toJSON()),
+                await instance.identity.create.signedCredential({
+                    metadata: claimsMetadata.emailAddress,
+                    claim: {
+                        email: respArgs.email
+                    },
+                    subject: instance.identity.did
+                }, pass).then(cred => cred.toJSON())
             ]
-        })
+        }, pass, req)
 
     instance.decorate('idController', {
         did: get_info,

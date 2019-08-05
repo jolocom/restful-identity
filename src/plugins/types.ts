@@ -31,11 +31,12 @@ export interface ControllerInstance extends fastify.FastifyInstance {
             payment: (reqArgs: IPaymentRequestAttrs) => Promise<JSONWebToken<PaymentRequest>>
         },
         response: {
-            auth: (reqArgs: IAuthenticationAttrs, req: JSONWebToken<JWTEncodable>) => Promise<JSONWebToken<Authentication>>
+            auth: (reqArgs: IAuthenticationAttrs, req: JSONWebToken<JWTEncodable>) => Promise<JSONWebToken<Authentication>>,
+            keycloak: (respArgs: IKeycloakAtrrs, req: JSONWebToken<JWTEncodable>) => Promise<JSONWebToken<CredentialResponse>>
+
         },
         validate: (response: JSONWebToken<JWTEncodable>) => Promise<boolean>,
         did: () => { date: Date, did: string },
-        keycloak: (reqArgs: IKeycloakAtrrs) => Promise<JSONWebToken<CredentialResponse>>
     }
 }
 

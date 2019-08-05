@@ -1,6 +1,7 @@
 import * as fp from 'fastify-plugin';
 import identityController from '../plugins/identityController';
 import { IDParameters, ControllerInstance } from '../plugins/types'
+import { JolocomLib } from 'jolocom-lib';
 
 const authReqSchema = {
     additionalProperties: false,
@@ -22,16 +23,14 @@ const authReqSchema = {
 const authRespSchema = {
     additionalProperties: false,
     properties: {
-        callbackURL: {
+        request: {
             type: "string"
         },
-        description: {
-            type: "string"
-        }
+        attrs: authReqSchema
     },
     required: [
-        "callbackURL",
-        "description"
+        "request",
+        "attrs"
     ],
     type: "object"
 }
@@ -75,20 +74,32 @@ const paymentReqSchema = {
 const keycloakSchema = {
     additionalProperties: false,
     properties: {
-        callbackURL: {
+        request: {
             type: "string"
         },
-        name: {
-            type: "string"
-        },
-        email: {
-            type: "string"
+        attrs: {
+            properties: {
+                callbackURL: {
+                    type: "string"
+                },
+                name: {
+                    type: "string"
+                },
+                email: {
+                    type: "string"
+                }
+            },
+            required: [
+                "callbackURL",
+                "name",
+                "email"
+            ],
+            type: "object"
         }
     },
     required: [
-        "callbackURL"
-        "name",
-        "email"
+        "request",
+        "attrs"
     ],
     type: "object"
 }
@@ -119,17 +130,19 @@ export default fp(async (instance: ControllerInstance, opts: IDParameters, next)
                 reply.code(500)
             }));
 
+    instance.post('/response/keycloak', { schema: { body: keycloakSchema } },
+        async (request, reply) =>
+            instance.idController.response.keycloak(request.body.attrs,
+                JolocomLib.parse.interactionToken.fromJWT(request.body.request))
+                .then(creds => reply.send(creds.encode()))
+                .catch(error => {
+                    request.log.error(error);
+                    reply.code(500)
+                }));
+
     instance.post('/validate', { schema: { body: validateSchema } },
         async (request, reply) => instance.idController.validate(request.body)
             .then(valid => reply.code(200).send(valid ? 'true' : 'false'))
-            .catch(error => {
-                request.log.error(error);
-                reply.code(500)
-            }));
-
-    instance.post('/keycloak', { schema: { body: keycloakSchema } },
-        async (request, reply) => instance.idController.keycloak(request.body)
-            .then(creds => reply.send(creds.encode()))
             .catch(error => {
                 request.log.error(error);
                 reply.code(500)
