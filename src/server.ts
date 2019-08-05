@@ -10,7 +10,7 @@ const server: fastify.FastifyInstance<
     ServerResponse
 > = fastify({
     logger: true,
-    pluginTimeout: 60000
+    pluginTimeout: 120000
 });
 
 server.register(identityService, {
