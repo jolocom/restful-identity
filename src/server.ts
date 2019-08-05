@@ -2,7 +2,7 @@
 import * as fastify from 'fastify';
 import { Server, IncomingMessage, ServerResponse } from "http";
 
-import identityService from './src/services/identityService';
+import identityService from './services/identityService';
 
 const server: fastify.FastifyInstance<
     Server,
@@ -14,10 +14,10 @@ const server: fastify.FastifyInstance<
 });
 
 server.register(identityService, {
-    idArgs: {
-        seed: Buffer.from('9'.repeat(64), 'hex'),
-        password: 'dsakt'
-    },
+    // idArgs: {
+    //     seed: Buffer.from('9'.repeat(64), 'hex'),
+    //     password: 'dsakt'
+    // },
     dep: {
         endpoint: 'https://r2bapi.dltstax.net/',
         contract: '0x50ee3ad2042a16c9a9b75b447947c7a7d2c53e29'
