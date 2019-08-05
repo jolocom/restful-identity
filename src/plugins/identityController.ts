@@ -9,10 +9,11 @@ import {
 
 import {
     IDParameters,
-    ImplementationInstance
+    ImplementationInstance,
+    IKeycloakAtrrs
 } from './types';
 import { JWTEncodable, JSONWebToken } from 'jolocom-lib/js/interactionTokens/JSONWebToken';
-import { JolocomLib } from 'jolocom-lib';
+import { JolocomLib, claimsMetadata } from 'jolocom-lib';
 
 export default fp(async (instance: ImplementationInstance, opts: IDParameters, next) => {
     const pass = opts.idArgs.password
@@ -64,6 +65,30 @@ export default fp(async (instance: ImplementationInstance, opts: IDParameters, n
         }
     }
 
+    const get_keycloak_creds = async (args: IKeycloakAtrrs) =>
+        instance.identity.create.interactionTokens.response.share({
+            callbackURL: args.callbackURL,
+            suppliedCredentials: [
+                {
+                    await instance.identity.create.signedCredential({
+                        metadata: claimsMetadata.name,
+                        claim: {
+                            familyName: args.name,
+                            givenName: args.name
+                        },
+                        subject: instance.identity.did
+                    }, pass),
+                    await instance.identity.create.signedCredential({
+                        metadata: claimsMetadata.emailAddress,
+                        claim: {
+                            email: args.email
+                        },
+                        subject: instance.identity.did
+                    }, pass)
+                }
+            ]
+        })
+
     instance.decorate('idController', {
         did: get_info,
         request: {
@@ -73,7 +98,8 @@ export default fp(async (instance: ImplementationInstance, opts: IDParameters, n
         response: {
             auth: get_auth_resp
         },
-        validate: is_resp_valid
+        validate: is_resp_valid,
+        keycloak: get_keycloak_creds
     });
 
     next();

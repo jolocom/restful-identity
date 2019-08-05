@@ -72,6 +72,27 @@ const paymentReqSchema = {
     type: "object"
 }
 
+const keycloakSchema = {
+    additionalProperties: false,
+    properties: {
+        callbackURL: {
+            type: "string"
+        },
+        name: {
+            type: "string"
+        },
+        email: {
+            type: "string"
+        }
+    },
+    required: [
+        "callbackURL"
+        "name",
+        "email"
+    ],
+    type: "object"
+}
+
 const validateSchema = {
     type: "string"
 }
@@ -101,6 +122,14 @@ export default fp(async (instance: ControllerInstance, opts: IDParameters, next)
     instance.post('/validate', { schema: { body: validateSchema } },
         async (request, reply) => instance.idController.validate(request.body)
             .then(valid => reply.code(200).send(valid ? 'true' : 'false'))
+            .catch(error => {
+                request.log.error(error);
+                reply.code(500)
+            }));
+
+    instance.post('/keycloak', { schema: { body: keycloakSchema } },
+        async (request, reply) => instance.idController.keycloak(request.body)
+            .then(creds => reply.send(creds.encode()))
             .catch(error => {
                 request.log.error(error);
                 reply.code(500)

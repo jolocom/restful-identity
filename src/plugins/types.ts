@@ -8,12 +8,20 @@ import {
 import { IAuthenticationAttrs, IPaymentRequestAttrs } from 'jolocom-lib/js/interactionTokens/interactionTokens.types';
 import { Authentication } from 'jolocom-lib/js/interactionTokens/authentication';
 import { PaymentRequest } from 'jolocom-lib/js/interactionTokens/paymentRequest'
+import { SignedCredential } from 'jolocom-lib/js/credentials/signedCredential/signedCredential';
+import { CredentialResponse } from 'jolocom-lib/js/interactionTokens/credentialResponse';
 
 
 export interface InteractionStore {
     start: (token: JSONWebToken<JWTEncodable>) => void,
     findMatch: (token: JSONWebToken<JWTEncodable>) => JSONWebToken<JWTEncodable>,
     finish: (token: JSONWebToken<JWTEncodable>) => boolean
+}
+
+export interface IKeycloakAtrrs {
+    callbackURL: string,
+    name: string,
+    email: string
 }
 
 export interface ControllerInstance extends fastify.FastifyInstance {
@@ -26,7 +34,8 @@ export interface ControllerInstance extends fastify.FastifyInstance {
             auth: (reqArgs: IAuthenticationAttrs, req: JSONWebToken<JWTEncodable>) => Promise<JSONWebToken<Authentication>>
         },
         validate: (response: JSONWebToken<JWTEncodable>) => Promise<boolean>,
-        did: () => { date: Date, did: string }
+        did: () => { date: Date, did: string },
+        keycloak: (reqArgs: IKeycloakAtrrs) => Promise<JSONWebToken<CredentialResponse>>
     }
 }
 
