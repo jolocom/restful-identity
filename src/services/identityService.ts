@@ -140,7 +140,7 @@ export default fp(async (instance: ControllerInstance, opts: IDParameters, next)
             }));
 
     instance.post('/response/authentication', { schema: { body: authRespSchema } },
-        async (request, reply) => instance.idController.response.auth(req.body.attrs,
+        async (request, reply) => instance.idController.response.auth(request.body.attrs,
             JolocomLib.parse.interactionToken.fromJWT(request.body.request))
             .then(resp => reply.code(200).send(resp.encode()))
             .catch(error => {
