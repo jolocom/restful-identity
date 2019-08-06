@@ -52,16 +52,24 @@ export default fp(async (instance: ImplementationInstance, opts: IDParameters, n
         return resp;
     }
 
-    const is_resp_valid = async (response: string): Promise<boolean> => {
-        const resp = JolocomLib.parse.interactionToken.fromJWT(response)
+    const is_resp_valid = async (resp: JSONWebToken<JWTEncodable>): Promise<{
+        validity: boolean,
+        respondant: string
+    }> => {
         const req = instance.interactions.findMatch(resp);
         try {
             await instance.identity.validateJWT(resp, req)
             instance.interactions.finish(req);
-            return true;
+            return {
+                validity: true,
+                respondant: resp.issuer
+            }
         } catch (err) {
             instance.log.error({ actor: 'identity controller' }, err);
-            return false;
+            return {
+                validity: false,
+                respondant: resp.issuer
+            }
         }
     }
 

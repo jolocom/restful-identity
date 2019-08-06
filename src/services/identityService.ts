@@ -125,7 +125,7 @@ export default fp(async (instance: ControllerInstance, opts: IDParameters, next)
 
     instance.post('/request/authentication', { schema: { body: authReqSchema } },
         async (request, reply) => instance.idController.request.auth(request.body)
-            .then(authReq => reply.send(authReq.encode()))
+            .then(authReq => reply.code(200).send(authReq.encode()))
             .catch(error => {
                 request.log.error(error);
                 reply.code(500)
@@ -133,7 +133,7 @@ export default fp(async (instance: ControllerInstance, opts: IDParameters, next)
 
     instance.post('/request/payment', { schema: { body: paymentReqSchema } },
         async (request, reply) => instance.idController.request.payment(request.body)
-            .then(paymentReq => reply.send(paymentReq))
+            .then(paymentReq => reply.code(200).send(paymentReq))
             .catch(error => {
                 request.log.error(error);
                 reply.code(500)
@@ -143,15 +143,15 @@ export default fp(async (instance: ControllerInstance, opts: IDParameters, next)
         async (request, reply) =>
             instance.idController.response.keycloak(request.body.attrs,
                 JolocomLib.parse.interactionToken.fromJWT(request.body.request))
-                .then(creds => reply.send(creds.encode()))
+                .then(creds => reply.code(200).send(creds.encode()))
                 .catch(error => {
                     request.log.error(error);
                     reply.code(500)
                 }));
 
     instance.post('/validate', { schema: { body: validateSchema } },
-        async (request, reply) => instance.idController.validate(request.body.token)
-            .then(valid => reply.code(200).send(valid ? 'true' : 'false'))
+        async (request, reply) => instance.idController.validate(JolocomLib.parse.interactionToken.fromJWT(request.body.token))
+            .then(status => reply.code(200).send(status))
             .catch(error => {
                 request.log.error(error);
                 reply.code(500)

@@ -35,7 +35,10 @@ export interface ControllerInstance extends fastify.FastifyInstance {
             keycloak: (respArgs: IKeycloakAtrrs, req: JSONWebToken<JWTEncodable>) => Promise<JSONWebToken<CredentialResponse>>
 
         },
-        validate: (response: JSONWebToken<JWTEncodable>) => Promise<boolean>,
+        validate: (response: JSONWebToken<JWTEncodable>) => Promise<{
+            validity: boolean,
+            respondant: string
+        }>,
         did: () => { date: Date, did: string },
     }
 }
