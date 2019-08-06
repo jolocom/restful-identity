@@ -1,8 +1,22 @@
 
 import * as fastify from 'fastify';
 import { Server, IncomingMessage, ServerResponse } from "http";
-
+import * as parseArgs from 'minimist';
 import identityService from './services/identityService';
+
+const args = parseArgs(process.argv.slice(2))
+
+const dep = args.endpoint && args.contract ? {
+    endpoint: args.endpoint,
+    contract: args.contract
+} : undefined
+
+const idArgs = args.seed ? {
+    seed: Buffer.from(args.seed),
+    password: args.password || 'secret'
+} : undefined
+
+const port = args.port || 3000
 
 const server: fastify.FastifyInstance<
     Server,
@@ -14,20 +28,14 @@ const server: fastify.FastifyInstance<
 });
 
 server.register(identityService, {
-    // idArgs: {
-    //     seed: Buffer.from('9'.repeat(64), 'hex'),
-    //     password: 'dsakt'
-    // },
-    dep: {
-        endpoint: 'https://r2bapi.dltstax.net/',
-        contract: '0x50ee3ad2042a16c9a9b75b447947c7a7d2c53e29'
-    }
+    idArgs,
+    dep
 });
 
 const start = async () => {
     try {
         await server.ready()
-        await server.listen(3000, "0.0.0.0");
+        await server.listen(port, "0.0.0.0");
     } catch (err) {
         console.log(err);
         server.log.error(err);

@@ -22,11 +22,13 @@
     "fastify-plugin": "^1.5.0",
     "hardware_key_provider": "0.4.8",
     "jolocom-lib": "2.4.3",
-    "jolocom-lib-stax-connector": "^0.3.1"
+    "jolocom-lib-stax-connector": "^0.3.1",
+    "minimist": "^1.2.0"
   },
   "devDependencies": {
     "@types/jest": "^24.0.11",
     "@types/lokijs": "^1.5.2",
+    "@types/minimist": "^1.2.0",
     "@types/node": "^11.13.0",
     "@types/supertest": "^2.0.7",
     "jest": "^24.7.1",

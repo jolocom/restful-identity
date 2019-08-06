@@ -43,7 +43,7 @@ const get_vkp = (params?: IDParameters): IVaultedKeyProvider => {
     try {
         return new HardwareKeyProvider();
     } catch {
-        return new JolocomLib.KeyProvider(Buffer.from('a'.repeat(64), 'hex'), "secret");
+        return new JolocomLib.KeyProvider(Buffer.from('a'.repeat(64), 'hex'), 'secret');
     }
 }
 
@@ -56,7 +56,7 @@ const get_infrastructure = (
             ? createJolocomRegistry({
                 ethereumConnector: getStaxConfiguredContractsConnector(
                     params.dep.endpoint,
-                    params.dep.contract || '0x50ee3ad2042a16c9a9b75b447947c7a7d2c53e29',
+                    params.dep.contract,
                     httpAgent
                 ),
                 ipfsConnector: getStaxConfiguredStorageConnector(params.dep.endpoint, httpAgent),
