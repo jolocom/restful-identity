@@ -2,14 +2,14 @@
   "name": "restful-identity",
   "version": "1.0.0",
   "description": "",
-  "main": "app.js",
+  "main": "./dist/server.js",
   "directories": {
     "test": "test"
   },
   "scripts": {
     "test": "NODE_ENV=test npx jest --verbose --runInBand",
     "build": "rm -rf dist && tsc -p .",
-    "start": "fastify start -l info ./dist/server.js",
+    "start": "node ./dist/server.js",
     "dev": "ts-node --files ./server.ts"
   },
   "keywords": [],
