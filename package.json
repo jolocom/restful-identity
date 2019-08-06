@@ -3,8 +3,14 @@
   "version": "1.0.0",
   "description": "",
   "main": "./dist/server.js",
+  "files": [
+    "dist/*.js"
+  ],
   "directories": {
     "test": "test"
+  },
+  "bin": {
+    "restful-identity": "dist/server.js"
   },
   "scripts": {
     "test": "NODE_ENV=test npx jest --verbose --runInBand",
