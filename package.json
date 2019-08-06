@@ -20,8 +20,8 @@
     "fastify": "^2.0.0",
     "fastify-cli": "^1.0.0",
     "fastify-plugin": "^1.5.0",
-    "hardware_key_provider": "^0.4.6",
-    "jolocom-lib": "^3.0.0",
+    "hardware_key_provider": "0.4.8",
+    "jolocom-lib": "2.4.3",
     "jolocom-lib-stax-connector": "^0.3.1"
   },
   "devDependencies": {

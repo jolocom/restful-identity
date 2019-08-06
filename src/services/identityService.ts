@@ -60,7 +60,7 @@ const paymentReqSchema = {
                     type: "number"
                 },
             },
-            required: ["value", "to", "gaslimit", "gasPrice"]
+            required: ["value"]
         }
     },
     required: [
