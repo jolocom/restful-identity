@@ -1,5 +1,6 @@
 
 import * as fastify from 'fastify';
+import * as swagger from 'fastify-swagger';
 import { Server, IncomingMessage, ServerResponse } from "http";
 import * as parseArgs from 'minimist';
 import identityService from './services/identityService';
@@ -28,6 +29,29 @@ const server: fastify.FastifyInstance<
     logger: true,
     pluginTimeout: 120000
 });
+
+server.register(swagger, {
+    exposeRoute: true,
+    swagger: {
+        info: {
+            title: 'Restful Identity',
+            description: 'RPC server for a Jolocom Identity',
+            version: '1.1.2'
+        },
+        externalDocs: {
+            url: 'https://jolocom.io',
+            description: 'Find more info here'
+        },
+        host: 'localhost',
+        schemes: ['http'],
+        consumes: ['application/json'],
+        produces: ['application/json'],
+        tags: [
+            { name: 'request', description: 'User related end-points' },
+            { name: 'response', description: 'Code related end-points' }
+        ]
+    }
+})
 
 server.register(identityService, {
     idArgs,
