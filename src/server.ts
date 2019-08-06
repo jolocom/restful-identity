@@ -4,11 +4,13 @@ import { Server, IncomingMessage, ServerResponse } from "http";
 import * as parseArgs from 'minimist';
 import identityService from './services/identityService';
 
-const args = parseArgs(process.argv.slice(2))
+const args = parseArgs(process.argv.slice(2), {
+    string: ['seed', 'contract', 'password']
+})
 
 const dep = args.endpoint && args.contract ? {
     endpoint: args.endpoint,
-    contract: args.contract
+    contract: args.contract.toString()
 } : undefined
 
 const idArgs = args.seed ? {
