@@ -139,15 +139,23 @@ export default fp(async (instance: ControllerInstance, opts: IDParameters, next)
                 reply.code(500)
             }));
 
+    instance.post('/response/authentication', { schema: { body: authRespSchema } },
+        async (request, reply) => instance.idController.response.auth(req.body.attrs,
+            JolocomLib.parse.interactionToken.fromJWT(request.body.request))
+            .then(resp => reply.code(200).send(resp.encode()))
+            .catch(error => {
+                request.log.error(error)
+                reply.code(500)
+            }))
+
     instance.post('/response/keycloak', { schema: { body: keycloakSchema } },
-        async (request, reply) =>
-            instance.idController.response.keycloak(request.body.attrs,
-                JolocomLib.parse.interactionToken.fromJWT(request.body.request))
-                .then(creds => reply.code(200).send(creds.encode()))
-                .catch(error => {
-                    request.log.error(error);
-                    reply.code(500)
-                }));
+        async (request, reply) => instance.idController.response.keycloak(request.body.attrs,
+            JolocomLib.parse.interactionToken.fromJWT(request.body.request))
+            .then(creds => reply.code(200).send(creds.encode()))
+            .catch(error => {
+                request.log.error(error);
+                reply.code(500)
+            }));
 
     instance.post('/validate', { schema: { body: validateSchema } },
         async (request, reply) => instance.idController.validate(JolocomLib.parse.interactionToken.fromJWT(request.body.token))
