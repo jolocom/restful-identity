@@ -105,7 +105,16 @@ const keycloakSchema = {
 }
 
 const validateSchema = {
-    type: "string"
+    additionalProperties: false,
+    properties: {
+        token: {
+            type: "string"
+        }
+    },
+    required: [
+        "token"
+    ],
+    type: "object"
 }
 
 export default fp(async (instance: ControllerInstance, opts: IDParameters, next) => {
@@ -141,7 +150,7 @@ export default fp(async (instance: ControllerInstance, opts: IDParameters, next)
                 }));
 
     instance.post('/validate', { schema: { body: validateSchema } },
-        async (request, reply) => instance.idController.validate(request.body)
+        async (request, reply) => instance.idController.validate(request.body.token)
             .then(valid => reply.code(200).send(valid ? 'true' : 'false'))
             .catch(error => {
                 request.log.error(error);
