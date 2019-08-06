@@ -10,7 +10,7 @@ const args = parseArgs(process.argv.slice(2), {
 
 const dep = args.endpoint && args.contract ? {
     endpoint: args.endpoint,
-    contract: args.contract.toString()
+    contract: args.contract
 } : undefined
 
 const idArgs = args.seed ? {
