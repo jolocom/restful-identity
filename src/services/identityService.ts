@@ -105,7 +105,7 @@ const keycloakSchema = {
 }
 
 const tokenResponseSchema = {
-    201: {
+    "201": {
         description: 'successful call',
         type: 'object',
         properties: {
@@ -128,7 +128,7 @@ const validateSchema = {
 }
 
 const validationResponseSchema = {
-    201: {
+    "201": {
         description: 'successful call',
         type: 'object',
         properties: {
@@ -139,9 +139,13 @@ const validationResponseSchema = {
 }
 
 const didResponseSchema = {
-    201: {
-        did: { type: 'string' },
-        date: { type: 'string' }
+    "201": {
+        description: 'identity info',
+        type: 'object',
+        properties: {
+            did: { type: 'string' },
+            date: { type: 'string' }
+        }
     }
 }
 
