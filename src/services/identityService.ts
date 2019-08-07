@@ -104,6 +104,16 @@ const keycloakSchema = {
     type: "object"
 }
 
+const tokenResponseSchema = {
+    201: {
+        description: 'successful call',
+        type: 'object',
+        properties: {
+            token: { type: 'string' }
+        }
+    }
+}
+
 const validateSchema = {
     additionalProperties: false,
     properties: {
@@ -117,49 +127,92 @@ const validateSchema = {
     type: "object"
 }
 
+const validationResponseSchema = {
+    201: {
+        description: 'successful call',
+        type: 'object',
+        properties: {
+            validity: { type: 'string' },
+            respondant: { type: 'string' }
+        }
+    }
+}
+
+const didResponseSchema = {
+    201: {
+        did: { type: 'string' },
+        date: { type: 'string' }
+    }
+}
+
 export default fp(async (instance: ControllerInstance, opts: IDParameters, next) => {
     instance.register(identityController, opts);
 
-    instance.get('/did', {},
-        async (request, reply) => reply.send(instance.idController.did()));
+    instance.get('/did', { schema: { response: didResponseSchema } },
+        async (request, reply) => reply.code(201).send(instance.idController.did()));
 
-    instance.post('/request/authentication', { schema: { body: authReqSchema } },
+    instance.post('/request/authentication', {
+        schema: {
+            body: authReqSchema,
+            response: tokenResponseSchema
+        }
+    },
         async (request, reply) => instance.idController.request.auth(request.body)
-            .then(authReq => reply.code(200).send(authReq.encode()))
+            .then(authReq => reply.code(201).send({ token: authReq.encode() }))
             .catch(error => {
                 request.log.error(error);
                 reply.code(500)
             }));
 
-    instance.post('/request/payment', { schema: { body: paymentReqSchema } },
+    instance.post('/request/payment', {
+        schema: {
+            body: paymentReqSchema,
+            response: tokenResponseSchema
+        }
+    },
         async (request, reply) => instance.idController.request.payment(request.body)
-            .then(paymentReq => reply.code(200).send(paymentReq))
+            .then(paymentReq => reply.code(201).send({ token: paymentReq.encode() }))
             .catch(error => {
                 request.log.error(error);
                 reply.code(500)
             }));
 
-    instance.post('/response/authentication', { schema: { body: authRespSchema } },
+    instance.post('/response/authentication', {
+        schema: {
+            body: authRespSchema,
+            response: tokenResponseSchema
+        }
+    },
         async (request, reply) => instance.idController.response.auth(request.body.attrs,
             JolocomLib.parse.interactionToken.fromJWT(request.body.request))
-            .then(resp => reply.code(200).send(resp.encode()))
+            .then(resp => reply.code(201).send({ token: resp.encode() }))
             .catch(error => {
                 request.log.error(error)
                 reply.code(500)
             }))
 
-    instance.post('/response/keycloak', { schema: { body: keycloakSchema } },
+    instance.post('/response/keycloak', {
+        schema: {
+            body: keycloakSchema,
+            response: tokenResponseSchema
+        }
+    },
         async (request, reply) => instance.idController.response.keycloak(request.body.attrs,
             JolocomLib.parse.interactionToken.fromJWT(request.body.request))
-            .then(creds => reply.code(200).send(creds.encode()))
+            .then(creds => reply.code(201).send({ token: creds.encode() }))
             .catch(error => {
                 request.log.error(error);
                 reply.code(500)
             }));
 
-    instance.post('/validate', { schema: { body: validateSchema } },
+    instance.post('/validate', {
+        schema: {
+            body: validateSchema,
+            response: validationResponseSchema
+        }
+    },
         async (request, reply) => instance.idController.validate(JolocomLib.parse.interactionToken.fromJWT(request.body.token))
-            .then(status => reply.code(200).send(status))
+            .then(status => reply.code(201).send(status))
             .catch(error => {
                 request.log.error(error);
                 reply.code(500)

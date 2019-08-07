@@ -46,10 +46,6 @@ server.register(swagger, {
         schemes: ['http'],
         consumes: ['application/json'],
         produces: ['application/json'],
-        tags: [
-            { name: 'request', description: 'User related end-points' },
-            { name: 'response', description: 'Code related end-points' }
-        ]
     }
 })
 
