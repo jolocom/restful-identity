@@ -39,7 +39,7 @@ export interface ControllerInstance extends fastify.FastifyInstance {
             validity: boolean,
             respondant: string
         }>,
-        did: () => { date: Date, did: string },
+        did: () => { date: string, did: string },
     }
 }
 

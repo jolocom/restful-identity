@@ -22,7 +22,7 @@ export default fp(async (instance: ImplementationInstance, opts: IDParameters, n
 
     const get_info = _ => {
         return {
-            date: instance.identity.didDocument.created,
+            date: instance.identity.didDocument.created.toISOString(),
             did: instance.identity.did
         }
     };
