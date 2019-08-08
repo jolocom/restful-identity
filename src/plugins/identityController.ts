@@ -13,10 +13,10 @@ import {
     IKeycloakAtrrs
 } from './types';
 import { JWTEncodable, JSONWebToken } from 'jolocom-lib/js/interactionTokens/JSONWebToken';
-import { JolocomLib, claimsMetadata } from 'jolocom-lib';
+import { claimsMetadata } from 'jolocom-lib';
 
 export default fp(async (instance: ImplementationInstance, opts: IDParameters, next) => {
-    const pass = opts.idArgs ? opts.idArgs.password : 'secret'
+    const pass = (opts.idArgs && opts.idArgs.password) || 'secret'
     instance.register(identity, opts);
     instance.register(interactions, {});
 

@@ -44,8 +44,27 @@ export interface ControllerInstance extends fastify.FastifyInstance {
 }
 
 export interface IDParameters {
-    idArgs?: { seed: Buffer; password: string }
-    dep?: { endpoint: string; contract: string }
+    dep?: InfrastructureParameters
+    idArgs?: SecretParameters
+}
+
+export interface SecretParameters {
+    seed: Buffer
+    password: string
+}
+
+export interface InfrastructureParameters {
+    endpoint: string
+    contract: string
+}
+
+export interface DeploymentParameters {
+    port: number
+}
+
+export interface ServerConfig {
+    IDConfig: IDParameters
+    deploymentConfig: DeploymentParameters
 }
 
 export interface ImplementationInstance extends fastify.FastifyInstance {
