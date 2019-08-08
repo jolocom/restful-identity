@@ -3,23 +3,39 @@ import * as fastify from 'fastify';
 import * as swagger from 'fastify-swagger';
 import { Server, IncomingMessage, ServerResponse } from "http";
 import * as parseArgs from 'minimist';
+import * as fs from 'fs';
+import * as ini from 'ini';
 import identityService from './services/identityService';
 
-const args = parseArgs(process.argv.slice(2), {
+const parseConfig = (cliArgs: parseArgs.ParsedArgs, { deployment, identity, port }: { [key: string]: any }) => ({
+    dep: {
+        endpoint: cliArgs.endpoint || deployment.endpoint || undefined,
+        contract: cliArgs.contract || deployment.contract || undefined
+    },
+    idArgs: {
+        seed: Buffer.from(cliArgs.seed || identity.seed || 'a'.repeat(64)),
+        password: cliArgs.password || identity.password || 'secret'
+    },
+    port: cliArgs.port || port || 3000
+})
+
+const getFile = (): string => {
+    try {
+        return fs.readFileSync('/etc/jolocom.conf', 'utf-8')
+    } catch (error) {
+        return ''
+    }
+}
+
+const fileArgs = ini.parse(getFile())
+
+const cliArgs = parseArgs(process.argv.slice(2), {
     string: ['seed', 'contract', 'password']
 })
 
-const dep = args.endpoint && args.contract ? {
-    endpoint: args.endpoint,
-    contract: args.contract
-} : undefined
+const { dep, idArgs, port } = parseConfig(cliArgs, fileArgs)
 
-const idArgs = args.seed ? {
-    seed: Buffer.from(args.seed),
-    password: args.password || 'secret'
-} : undefined
-
-const port = args.port || 3000
+console.log({ dep, idArgs, port })
 
 const server: fastify.FastifyInstance<
     Server,
