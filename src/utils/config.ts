@@ -24,7 +24,7 @@ export const getConfig = (args: string[]): ServerConfig => {
     const { deployment, identity, backend } = ini.parse(getFile(fileName))
 
     const deploymentConfig = {
-        port: cliArgs.port || (deployment ? deployment.port : undefined)
+        port: cliArgs.port || (deployment ? deployment.port : 3000)
     }
     const dep = cliArgs.endpoint && cliArgs.contract ? {
         endpoint: cliArgs.endpoint,

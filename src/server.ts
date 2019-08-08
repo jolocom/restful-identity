@@ -8,8 +8,6 @@ import { getConfig } from './utils/config';
 
 const serverConfig = getConfig(process.argv.slice(2))
 
-console.log(serverConfig)
-
 const server: fastify.FastifyInstance<
     Server,
     IncomingMessage,
@@ -25,7 +23,7 @@ server.register(swagger, {
         info: {
             title: 'Restful Identity',
             description: 'RPC server for a Jolocom Identity',
-            version: '1.1.2'
+            version: '1.3.0'
         },
         externalDocs: {
             url: 'https://jolocom.io',
