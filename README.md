@@ -44,7 +44,7 @@ This is simply the port that the server will listen on.
 The default is 3000
 
 #### File-based Configuration
-Here is an example configuration file with every option:
+Here is an example configuration file with every option (they are all optional):
 ```
 [identity]
 seed = B491A4D2A93281420DE9D799943DA73C3BCEE08FAD6EACD8E8A69BBE77C6D110
