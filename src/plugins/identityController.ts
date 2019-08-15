@@ -16,7 +16,7 @@ import { JWTEncodable, JSONWebToken } from 'jolocom-lib/js/interactionTokens/JSO
 import { claimsMetadata } from 'jolocom-lib';
 
 export default fp(async (instance: ImplementationInstance, opts: IDParameters, next) => {
-    const pass = (opts.idArgs && opts.idArgs.password) || 'secret'
+    const pass = (opts.idArgs && opts.idArgs.password) || 'a'.repeat(32)
     instance.register(identity, opts);
     instance.register(interactions, {});
 
@@ -58,7 +58,7 @@ export default fp(async (instance: ImplementationInstance, opts: IDParameters, n
     }> => {
         const req = instance.interactions.findMatch(resp);
         try {
-            await instance.identity.validateJWT(resp, req)
+            await instance.identity.validateJWT(resp, req, instance.resolver)
             instance.interactions.finish(req);
             return {
                 validity: true,
