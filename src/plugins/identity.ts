@@ -56,7 +56,7 @@ const get_vkp = (params?: IDParameters): IVaultedKeyProvider => {
 }
 
 const get_backend = (dep?: { endpoint: string, contract: string }): { reg: JolocomRegistry, mRes: MultiResolver } => {
-    if (!dep) return { reg: JolocomLib.registries.jolocom.create(), mRes: multiResolver }
+    if (!dep) return { reg: createJolocomRegistry(), mRes: multiResolver }
 
     const ethConn = getStaxConfiguredContractsConnector(
         dep.endpoint,
