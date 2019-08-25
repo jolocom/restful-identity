@@ -65,7 +65,7 @@ export default fp(async (instance: ImplementationInstance, opts: IDParameters, n
                 respondant: resp.issuer
             }
         } catch (err) {
-            instance.log.error({ actor: 'identity controller' }, err);
+            instance.log.error({ actor: 'identity controller' }, err.toString());
             return {
                 validity: false,
                 respondant: resp.issuer

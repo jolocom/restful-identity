@@ -132,10 +132,10 @@ export default fp(async (instance: fastify.FastifyInstance, opts: IDParameters, 
         derivationPath: JolocomLib.KeyTypes.jolocomIdentityKey,
         encryptionPass: password,
     }).catch(async (err) => {
-        instance.log.error({ actor: "identity" }, err)
+        instance.log.error({ actor: "identity" }, err.toString())
 
         await fuel(1e19, vkp, password, opts.dep)
-        return await reg.create(vkp, password).catch(err => instance.log.error({ actor: "identity" }, err))
+        return await reg.create(vkp, password).catch(err => instance.log.error({ actor: "identity" }, err.toString()))
     })
 
     if (identityWallet) {
