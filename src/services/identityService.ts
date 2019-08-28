@@ -130,7 +130,7 @@ const validationResponseSchema = {
         description: 'successful call',
         type: 'object',
         properties: {
-            validity: { type: 'string' },
+            validity: { type: 'boolean' },
             respondant: { type: 'string' }
         }
     }
