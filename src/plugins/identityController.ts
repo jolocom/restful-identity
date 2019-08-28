@@ -104,10 +104,10 @@ export default fp(async (instance: ImplementationInstance, opts: IDParameters, n
             payment: get_payment_req
         },
         response: {
-            auth: get_auth_resp
+            auth: get_auth_resp,
+            keycloack: get_keycloak_creds
         },
         validate: is_resp_valid,
-        keycloak: get_keycloak_creds
     });
 
     next();
