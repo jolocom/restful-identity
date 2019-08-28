@@ -2,6 +2,8 @@ import * as fp from 'fastify-plugin';
 import identityController from '../plugins/identityController';
 import { IDParameters, ControllerInstance } from '../plugins/types'
 import { JolocomLib } from 'jolocom-lib';
+import { CredentialRequest } from 'jolocom-lib/js/interactionTokens/credentialRequest';
+import { Authentication } from 'jolocom-lib/js/interactionTokens/authentication';
 
 const authReqSchema = {
     additionalProperties: false,
@@ -79,9 +81,6 @@ const keycloakSchema = {
         },
         attrs: {
             properties: {
-                callbackURL: {
-                    type: "string"
-                },
                 name: {
                     type: "string"
                 },
@@ -90,7 +89,6 @@ const keycloakSchema = {
                 }
             },
             required: [
-                "callbackURL",
                 "name",
                 "email"
             ],
@@ -188,7 +186,7 @@ export default fp(async (instance: ControllerInstance, opts: IDParameters, next)
         }
     },
         async (request, reply) => instance.idController.response.auth(request.body.attrs,
-            JolocomLib.parse.interactionToken.fromJWT(request.body.request))
+            JolocomLib.parse.interactionToken.fromJWT<Authentication>(request.body.request))
             .then(resp => reply.code(201).send({ token: resp.encode() }))
             .catch(error => {
                 request.log.error(error)
@@ -202,7 +200,7 @@ export default fp(async (instance: ControllerInstance, opts: IDParameters, next)
         }
     },
         async (request, reply) => instance.idController.response.keycloak(request.body.attrs,
-            JolocomLib.parse.interactionToken.fromJWT(request.body.request))
+            JolocomLib.parse.interactionToken.fromJWT<CredentialRequest>(request.body.request))
             .then(creds => reply.code(201).send({ token: creds.encode() }))
             .catch(error => {
                 request.log.error(error);

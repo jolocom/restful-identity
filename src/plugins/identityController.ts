@@ -14,6 +14,8 @@ import {
 } from './types';
 import { JWTEncodable, JSONWebToken } from 'jolocom-lib/js/interactionTokens/JSONWebToken';
 import { claimsMetadata } from 'jolocom-lib';
+import { CredentialRequest } from 'jolocom-lib/js/interactionTokens/credentialRequest';
+import { Authentication } from 'jolocom-lib/js/interactionTokens/authentication';
 
 export default fp(async (instance: ImplementationInstance, opts: IDParameters, next) => {
     const pass = (opts.idArgs && opts.idArgs.password) || 'a'.repeat(32)
@@ -44,7 +46,7 @@ export default fp(async (instance: ImplementationInstance, opts: IDParameters, n
         return req;
     }
 
-    const get_auth_resp = async (respArgs: IAuthenticationAttrs, req: JSONWebToken<JWTEncodable>) => {
+    const get_auth_resp = async (respArgs: IAuthenticationAttrs, req: JSONWebToken<Authentication>) => {
         const resp = await instance.identity.create.interactionTokens.response.auth(respArgs,
             pass,
             req
@@ -73,9 +75,9 @@ export default fp(async (instance: ImplementationInstance, opts: IDParameters, n
         }
     }
 
-    const get_keycloak_creds = async (respArgs: IKeycloakAtrrs, req: JSONWebToken<JWTEncodable>) =>
+    const get_keycloak_creds = async (respArgs: IKeycloakAtrrs, req: JSONWebToken<CredentialRequest>) =>
         instance.identity.create.interactionTokens.response.share({
-            callbackURL: respArgs.callbackURL,
+            callbackURL: req.interactionToken.callbackURL,
             suppliedCredentials: [
                 await instance.identity.create.signedCredential({
                     metadata: claimsMetadata.name,
