@@ -1,16 +1,21 @@
 import * as fastify from 'fastify';
 import {JolocomLib} from 'jolocom-lib';
 import identityService from '../../src/services/identityService';
+import * as supertest from 'supertest'
 import { IdentityWallet } from 'jolocom-lib/js/identityWallet/identityWallet';
 import { Server, IncomingMessage, ServerResponse } from "http";
+import { Authentication } from 'jolocom-lib/js/interactionTokens/authentication';
+import identity from '../../src/plugins/identity';
 
 const seed = new Buffer('b'.repeat(64), 'hex');
 const pword = 'henlmao';
-const vkp = new JolocomLib.KeyProvider(seed, pword);
+const vkp = JolocomLib.KeyProvider.fromSeed(seed, pword);
 
 const reg = JolocomLib.registries.jolocom.create();
 
-const authCallback = 'http://localhost:3000';
+const url = 'http://localhost:3000';
+
+const tester = supertest(url)
 
 const fastify_instance: fastify.FastifyInstance<
   Server,
@@ -18,9 +23,31 @@ const fastify_instance: fastify.FastifyInstance<
   ServerResponse
 > = fastify({logger:true});
 
-fastify_instance.register(identityService, {callbackURL: authCallback, idArgs: {seed: new Buffer('a'.repeat(64), 'hex'), password: pword}});
+fastify_instance.register(identityService);
+
+const basicAttrs = {callbackURL: 'https://google.com',
+                    description: 'test description'}
 
 let idw: IdentityWallet;
+
+const load = (testr: supertest.SuperTest<supertest.Test>) => endpoint => body =>
+    testr.post(endpoint)
+    .send(body)
+    .set('Accept', 'application/json')
+    .expect('Content-Type', /json/)
+    .expect(201)
+
+const authReq = load(tester)('/request/authentication')
+const authResp = load(tester)('/response/authentication')
+const validity = load(tester)('/validate')
+
+const doAuthFlow = (ident: IdentityWallet) => attrs => {
+    const {body: {token: val}} = await authReq(attrs)
+    const token = await
+    .then({body: {token: val}} => ident.create.interactionTokens.response.auth(attrs,
+                                                                               pword,
+                                                                               JolocomLib.parse.interactionToken.fromJWT<Authentication>(val)))
+                                                        .then(resp => validity({token: resp}))}
 
 describe('identity interaction integration test', () => {
   beforeAll(async () => {
@@ -37,18 +64,68 @@ describe('identity interaction integration test', () => {
       derivationPath: JolocomLib.KeyTypes.jolocomIdentityKey,
       encryptionPass: pword
     });
+
+
+    fastify_instance.listen(3000, "0.0.0.0").then(console.log).catch(console.error)
   });
 
-  it('completes the authentication flow', async () => {
-    const result = await fastify_instance.inject({method: 'GET', url: '/authenticationRequest'});
-    expect(result.payload).not.toBe(500);
+    afterAll(async () => {
+        fastify_instance.close()
+    })
 
-    const resultParsed = JolocomLib.parse.interactionToken.fromJWT(result.payload);
+  it('completes the authentication flow', async (done) => {
+      // const {body: {token: auth_req}} = await authReq(basicAttrs)
 
-    const response = await idw.create.interactionTokens.response.auth({callbackURL: authCallback}, pword, resultParsed);
-    const responseJWT = response.encode();
+      // const authReqP = JolocomLib.parse.interactionToken.fromJWT<Authentication>(authReq)
+      // expect(auth_req)
 
-    await fastify_instance.inject({method: 'POST', url: '/validateResponse', payload: {token: responseJWT}})
-      .then(resp => expect(resp.statusCode).toBe(204));
+      // const authResp = await idw.create.interactionTokens.response.auth(basicAttrs, pword, authReqP)
+
+      // const {body: validResp} = await tester.post('/validate')
+      //     .send({token: authResp.encode()})
+      //     .set('Accept', 'application/json')
+      //     .expect('Content-Type', /json/)
+      //     .expect(201)
+
+      const {body: validResp} = await doAuthFlow(idw)(basicAttrs)
+
+      expect(validResp.validity).toEqual(true)
+      done()
   })
+
+  it('handles concurrent requests eleganty', async (done) => {
+      const {body: {token: authReq}} = await tester.post('/request/authentication')
+          .send(basicAttrs)
+          .set('Accept', 'application/json')
+          .expect('Content-Type', /json/)
+          .expect(201)
+
+      const authReqP = JolocomLib.parse.interactionToken.fromJWT<Authentication>(authReq)
+      expect(authReq)
+
+      const authResp = await idw.create.interactionTokens.response.auth(basicAttrs, pword, authReqP)
+
+      const val = tester.post('/validate')
+          .send({token: authResp.encode()})
+          .set('Accept', 'application/json')
+          .expect('Content-Type', /json/)
+          .expect(201)
+          .then(val => expect(val.body.validity).toEqual(true))
+
+      const otherReq = tester.post('/response/authentication')
+          .send({request: authReq,
+                 attrs: basicAttrs})
+          .set('Accept', 'application/json')
+          .expect('Content-Type', /json/)
+          .expect(201)
+
+      await otherReq
+      await val
+
+      done()
+  })
+
+    it('handles load', async (done) => {
+
+    })
 })
