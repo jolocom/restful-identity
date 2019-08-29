@@ -30,7 +30,7 @@ const basicAttrs = {callbackURL: 'https://google.com',
 
 let idw: IdentityWallet;
 
-const load = (testr: supertest.SuperTest<supertest.Test>) => endpoint => body =>
+const load = (testr: supertest.SuperTest<supertest.Test>) => endpoint => async (body) =>
     testr.post(endpoint)
     .send(body)
     .set('Accept', 'application/json')
@@ -41,13 +41,11 @@ const authReq = load(tester)('/request/authentication')
 const authResp = load(tester)('/response/authentication')
 const validity = load(tester)('/validate')
 
-const doAuthFlow = (ident: IdentityWallet) => attrs => {
+const doAuthFlow = (ident: IdentityWallet) => async (attrs) => {
     const {body: {token: val}} = await authReq(attrs)
-    const token = await
-    .then({body: {token: val}} => ident.create.interactionTokens.response.auth(attrs,
-                                                                               pword,
-                                                                               JolocomLib.parse.interactionToken.fromJWT<Authentication>(val)))
-                                                        .then(resp => validity({token: resp}))}
+    const token = JolocomLib.parse.interactionToken.fromJWT<Authentication>(val)
+    const response = await ident.create.interactionTokens.response.auth(attrs, pword, token)
+    return await validity({token: response.encode()}) }
 
 describe('identity interaction integration test', () => {
   beforeAll(async () => {
@@ -74,19 +72,6 @@ describe('identity interaction integration test', () => {
     })
 
   it('completes the authentication flow', async (done) => {
-      // const {body: {token: auth_req}} = await authReq(basicAttrs)
-
-      // const authReqP = JolocomLib.parse.interactionToken.fromJWT<Authentication>(authReq)
-      // expect(auth_req)
-
-      // const authResp = await idw.create.interactionTokens.response.auth(basicAttrs, pword, authReqP)
-
-      // const {body: validResp} = await tester.post('/validate')
-      //     .send({token: authResp.encode()})
-      //     .set('Accept', 'application/json')
-      //     .expect('Content-Type', /json/)
-      //     .expect(201)
-
       const {body: validResp} = await doAuthFlow(idw)(basicAttrs)
 
       expect(validResp.validity).toEqual(true)
@@ -126,6 +111,14 @@ describe('identity interaction integration test', () => {
   })
 
     it('handles load', async (done) => {
+        const reqs = []
 
+        for (let i = 0; i < 100; i++) {
+            reqs.push(doAuthFlow(idw)(basicAttrs))
+        }
+
+        await Promise.all(reqs)
+
+        done()
     })
 })
