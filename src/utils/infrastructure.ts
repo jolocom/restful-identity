@@ -14,7 +14,7 @@ import { publicKeyToAddress } from 'jolocom-lib/js/utils/helper'
 import { awaitPaymentTxConfirmation, fuelAddress, getStaxEndpoints } from 'jolocom-lib-stax-connector/js/utils'
 import { HardwareKeyProvider } from 'hardware_key_provider'
 import { JolocomLib } from 'jolocom-lib';
-import { IDParameters } from '../plugins/types';
+import { IDParameters, InfrastructureParameters } from '../plugins/types';
 
 import { MultiResolver, createValidatingResolver, createJolocomResolver, multiResolver } from 'jolocom-lib/js/resolver';
 import { jolocomEthereumResolver } from 'jolocom-lib/js/ethereum/ethereum';
@@ -51,7 +51,7 @@ const get_vkp = (defaultPass: string, params?: IDParameters): IVaultedKeyProvide
     }
 }
 
-const get_backend = (dep?: { endpoint: string, contract: string }): { reg: JolocomRegistry, mRes: MultiResolver } => {
+const get_backend = (dep?: InfrastructureParameters): { reg: JolocomRegistry, mRes: MultiResolver } => {
     if (!dep) return { reg: createJolocomRegistry(), mRes: multiResolver }
 
     const ethConn = getStaxConfiguredContractsConnector(

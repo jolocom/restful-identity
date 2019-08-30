@@ -9,12 +9,23 @@ import { CredentialShareRequestCreationArgs } from 'jolocom-lib/js/identityWalle
 import { CredentialResponse } from 'jolocom-lib/js/interactionTokens/credentialResponse';
 import { JSONWebToken } from 'jolocom-lib/js/interactionTokens/JSONWebToken';
 import { CredentialRequest } from 'jolocom-lib/js/interactionTokens/credentialRequest';
+import { IDParameters } from '../../src/plugins/types';
+import { getInfrastructure } from '../../src/utils/infrastructure';
+import { SoftwareKeyProvider } from 'jolocom-lib/js/vaultedKeyProvider/softwareProvider';
 
-const seed = new Buffer('b'.repeat(64), 'hex');
-const pword = 'henlmao';
-const vkp = JolocomLib.KeyProvider.fromSeed(seed, pword);
 
-const reg = JolocomLib.registries.jolocom.create();
+const params: IDParameters = {
+    dep: {
+        endpoint: '',
+        contract: ''
+    },
+    idArgs: {
+        seed: Buffer.from('b'.repeat(64), 'hex'),
+        password: 'h'.repeat(32)
+    }
+}
+
+const {vkp, reg, password, mRes} = getInfrastructure('henlmao' , params)
 
 // const url = 'raspberrypi.local:3000';
 const url = 'http://localhost:3000'
@@ -27,7 +38,7 @@ const fastify_instance: fastify.FastifyInstance<
   ServerResponse
 > = fastify({logger:true});
 
-fastify_instance.register(identityService);
+fastify_instance.register(identityService, params);
 
 const basicAttrs = {callbackURL: 'https://google.com',
                     description: 'test description'}
@@ -46,11 +57,6 @@ const credReqAttrs: CredentialShareRequestCreationArgs = {
     ]
 }
 
-let idw: IdentityWallet;
-let kcToken: JSONWebToken<CredentialRequest>;
-let kcBody;
-let authReqBody;
-
 const load = (testr: supertest.SuperTest<supertest.Test>) => endpoint => async (body) =>
     testr.post(endpoint)
     .send(body)
@@ -63,38 +69,50 @@ const authResp = load(tester)('/response/authentication')
 const keycloak = load(tester)('/response/keycloak')
 const validity = load(tester)('/validate')
 
-const doAuthFlow = (ident: IdentityWallet) => async (authAttrs) => {
+const doAuthFlow = (ident: IdentityWallet, pass: string) => async (authAttrs) => {
     const {body: {token: val}} = await authReq(authAttrs)
     const token = JolocomLib.parse.interactionToken.fromJWT<Authentication>(val)
-    const response = await ident.create.interactionTokens.response.auth(authAttrs, pword, token)
+    const response = await ident.create.interactionTokens.response.auth(authAttrs, pass, token)
     return validity({token: response.encode()}) }
 
-const doAllFlows = (ident: IdentityWallet) => async (authAttrs, authRespToken, kcToken) =>
+const doAllFlows = (ident: IdentityWallet, pass: string) => async (authAttrs, authRespToken, kcToken) =>
     Promise.all([
-        doAuthFlow(ident)(authAttrs),
+        doAuthFlow(ident, pass)(authAttrs),
         keycloak(kcToken),
         authResp(authRespToken)
     ])
 
 describe('identity interaction integration test', () => {
+    let idw: IdentityWallet;
+    let kcToken: JSONWebToken<CredentialRequest>;
+    let kcBody;
+    let authReqBody;
+    const demopass = 'k'.repeat(32)
+
+
   beforeAll(async () => {
     jest.setTimeout(100000);
 
     await fastify_instance.ready();
 
-    idw = await reg.authenticate(vkp, {
+    const demoseed = Buffer.from('c'.repeat(64), 'hex')
+
+    const demovkp = SoftwareKeyProvider.fromSeed(demoseed, demopass)
+
+      // idw = await reg.create(demovkp, demopass)
+    idw = await reg.authenticate(demovkp, {
       derivationPath: JolocomLib.KeyTypes.jolocomIdentityKey,
-      encryptionPass: pword
+      encryptionPass: demopass
     });
 
-    kcToken = await idw.create.interactionTokens.request.share(credReqAttrs, pword)
+    kcToken = await idw.create.interactionTokens.request.share(credReqAttrs, demopass)
     kcBody = {request: kcToken.encode(),
               attrs: {
                 name: "Scooter",
                 email: "scooter-email"
               }}
 
-      authReqBody = {request: await idw.create.interactionTokens.request.auth(basicAttrs, pword).then(t => t.encode()),
+      authReqBody = {request: await idw.create.interactionTokens.request.auth(basicAttrs, demopass).then(t => t.encode()),
                      attrs: basicAttrs
                   }
     fastify_instance.listen(3000, "0.0.0.0").then(console.log).catch(console.error)
@@ -105,7 +123,7 @@ describe('identity interaction integration test', () => {
     })
 
   it('completes the authentication flow', async (done) => {
-      const {body: validResp} = await doAuthFlow(idw)(basicAttrs)
+      const {body: validResp} = await doAuthFlow(idw, demopass)(basicAttrs)
 
       expect(validResp.validity).toEqual(true)
       done()
@@ -120,7 +138,7 @@ describe('identity interaction integration test', () => {
 
       const authReqP = JolocomLib.parse.interactionToken.fromJWT<Authentication>(authReq)
 
-      const authResp = await idw.create.interactionTokens.response.auth(basicAttrs, pword, authReqP)
+      const authResp = await idw.create.interactionTokens.response.auth(basicAttrs, demopass, authReqP)
 
       const val = validity({token: authResp.encode()})
 
@@ -130,7 +148,7 @@ describe('identity interaction integration test', () => {
       await val
 
       const kcrP = JolocomLib.parse.interactionToken.fromJWT<CredentialResponse>(kcr.body.token)
-      expect(idw.validateJWT(kcrP, kcToken))
+      expect(idw.validateJWT(kcrP, kcToken, mRes))
       expect(kcrP.interactionToken.satisfiesRequest(kcToken.interactionToken))
 
       done()
@@ -140,7 +158,7 @@ describe('identity interaction integration test', () => {
         const reqs = []
 
         for (let i = 0; i < 100; i++) {
-            reqs.push(doAllFlows(idw)(basicAttrs, authReqBody, kcBody))
+            reqs.push(doAllFlows(idw, demopass)(basicAttrs, authReqBody, kcBody))
         }
 
         await Promise.all(reqs)
@@ -160,7 +178,7 @@ describe('identity interaction integration test', () => {
         const authResps = await Promise.all(authReqs.map(async (req) => {
             const reqT = JolocomLib.parse.interactionToken.fromJWT<Authentication>(req)
             return await idw.create.interactionTokens.response.auth(basicAttrs,
-                                                                    pword,
+                                                                    demopass,
                                                                     reqT).then(t => t.encode())}))
 
         const valReqs = authResps.map(resp => validity({token: resp}))
