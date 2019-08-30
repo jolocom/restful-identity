@@ -37,11 +37,11 @@ const credReqAttrs: CredentialShareRequestCreationArgs = {
     credentialRequirements: [
         {
             type: ['name'],
-            constraints: [{}]
+            constraints: []
         },
         {
             type: ['email'],
-            constraints: [{}]
+            constraints: []
         }
     ]
 }
@@ -144,6 +144,34 @@ describe('identity interaction integration test', () => {
         }
 
         await Promise.all(reqs)
+
+        done()
+    })
+
+    it('doesnt interfere with validation', async (done) => {
+        const auths = []
+
+        for (let i = 0; i < 100; i++) {
+            auths.push(authReq(basicAttrs))
+        }
+
+        const authReqs = await Promise.all(auths).then(resps => resps.map(resp => resp.body.token))
+
+        const authResps = await Promise.all(authReqs.map(async (req) => {
+            const reqT = JolocomLib.parse.interactionToken.fromJWT<Authentication>(req)
+            return await idw.create.interactionTokens.response.auth(basicAttrs,
+                                                                    pword,
+                                                                    reqT).then(t => t.encode())}))
+
+        const valReqs = authResps.map(resp => validity({token: resp}))
+
+        const kcReqs = []
+
+        for (let i = 0; i < 100; i++) {
+            kcReqs.push(keycloak(kcBody))
+        }
+
+        await Promise.all([Promise.all(kcReqs), Promise.all(valReqs)])
 
         done()
     })
