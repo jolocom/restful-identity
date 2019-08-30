@@ -9,12 +9,22 @@ import { CredentialShareRequestCreationArgs } from 'jolocom-lib/js/identityWalle
 import { CredentialResponse } from 'jolocom-lib/js/interactionTokens/credentialResponse';
 import { JSONWebToken } from 'jolocom-lib/js/interactionTokens/JSONWebToken';
 import { CredentialRequest } from 'jolocom-lib/js/interactionTokens/credentialRequest';
+import { IDParameters } from '../../src/plugins/types';
+import { getInfrastructure } from '../../src/utils/infrastructure';
 
-const seed = new Buffer('b'.repeat(64), 'hex');
-const pword = 'henlmao';
-const vkp = JolocomLib.KeyProvider.fromSeed(seed, pword);
 
-const reg = JolocomLib.registries.jolocom.create();
+const params: IDParameters = {
+    dep: {
+        endpoint: '',
+        contract: ''
+    },
+    idArgs: {
+        seed: new Buffer('b'.repeat(64), 'hex'),
+        password: 'henlmao'
+    }
+}
+
+const {vkp, reg, password, mRes} = getInfrastructure('henlmao' , params)
 
 // const url = 'raspberrypi.local:3000';
 const url = 'http://localhost:3000'
@@ -66,7 +76,7 @@ const validity = load(tester)('/validate')
 const doAuthFlow = (ident: IdentityWallet) => async (authAttrs) => {
     const {body: {token: val}} = await authReq(authAttrs)
     const token = JolocomLib.parse.interactionToken.fromJWT<Authentication>(val)
-    const response = await ident.create.interactionTokens.response.auth(authAttrs, pword, token)
+    const response = await ident.create.interactionTokens.response.auth(authAttrs, password, token)
     return validity({token: response.encode()}) }
 
 const doAllFlows = (ident: IdentityWallet) => async (authAttrs, authRespToken, kcToken) =>
@@ -84,17 +94,17 @@ describe('identity interaction integration test', () => {
 
     idw = await reg.authenticate(vkp, {
       derivationPath: JolocomLib.KeyTypes.jolocomIdentityKey,
-      encryptionPass: pword
+      encryptionPass: password
     });
 
-    kcToken = await idw.create.interactionTokens.request.share(credReqAttrs, pword)
+    kcToken = await idw.create.interactionTokens.request.share(credReqAttrs, password)
     kcBody = {request: kcToken.encode(),
               attrs: {
                 name: "Scooter",
                 email: "scooter-email"
               }}
 
-      authReqBody = {request: await idw.create.interactionTokens.request.auth(basicAttrs, pword).then(t => t.encode()),
+      authReqBody = {request: await idw.create.interactionTokens.request.auth(basicAttrs, password).then(t => t.encode()),
                      attrs: basicAttrs
                   }
     fastify_instance.listen(3000, "0.0.0.0").then(console.log).catch(console.error)
@@ -120,7 +130,7 @@ describe('identity interaction integration test', () => {
 
       const authReqP = JolocomLib.parse.interactionToken.fromJWT<Authentication>(authReq)
 
-      const authResp = await idw.create.interactionTokens.response.auth(basicAttrs, pword, authReqP)
+      const authResp = await idw.create.interactionTokens.response.auth(basicAttrs, password, authReqP)
 
       const val = validity({token: authResp.encode()})
 
@@ -130,7 +140,7 @@ describe('identity interaction integration test', () => {
       await val
 
       const kcrP = JolocomLib.parse.interactionToken.fromJWT<CredentialResponse>(kcr.body.token)
-      expect(idw.validateJWT(kcrP, kcToken))
+      expect(idw.validateJWT(kcrP, kcToken, mRes))
       expect(kcrP.interactionToken.satisfiesRequest(kcToken.interactionToken))
 
       done()
@@ -160,7 +170,7 @@ describe('identity interaction integration test', () => {
         const authResps = await Promise.all(authReqs.map(async (req) => {
             const reqT = JolocomLib.parse.interactionToken.fromJWT<Authentication>(req)
             return await idw.create.interactionTokens.response.auth(basicAttrs,
-                                                                    pword,
+                                                                    password,
                                                                     reqT).then(t => t.encode())}))
 
         const valReqs = authResps.map(resp => validity({token: resp}))
