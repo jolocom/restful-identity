@@ -18,7 +18,7 @@ import { CredentialRequest } from 'jolocom-lib/js/interactionTokens/credentialRe
 import { Authentication } from 'jolocom-lib/js/interactionTokens/authentication';
 
 export default fp(async (instance: ImplementationInstance, opts: IDParameters, next) => {
-    const pass = (opts.idArgs && opts.idArgs.password) || 'a'.repeat(32)
+    const pass = opts.idArgs.password
     instance.register(identity, opts);
     instance.register(interactions, {});
 

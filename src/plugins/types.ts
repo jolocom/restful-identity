@@ -8,7 +8,6 @@ import {
 import { IAuthenticationAttrs, IPaymentRequestAttrs } from 'jolocom-lib/js/interactionTokens/interactionTokens.types';
 import { Authentication } from 'jolocom-lib/js/interactionTokens/authentication';
 import { PaymentRequest } from 'jolocom-lib/js/interactionTokens/paymentRequest'
-import { SignedCredential } from 'jolocom-lib/js/credentials/signedCredential/signedCredential';
 import { CredentialResponse } from 'jolocom-lib/js/interactionTokens/credentialResponse';
 import { MultiResolver } from 'jolocom-lib/js/resolver';
 
@@ -46,7 +45,7 @@ export interface ControllerInstance extends fastify.FastifyInstance {
 
 export interface IDParameters {
     dep?: InfrastructureParameters
-    idArgs?: SecretParameters
+    idArgs: SecretParameters
 }
 
 export interface SecretParameters {
