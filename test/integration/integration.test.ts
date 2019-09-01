@@ -10,14 +10,14 @@ import { CredentialResponse } from 'jolocom-lib/js/interactionTokens/credentialR
 import { JSONWebToken } from 'jolocom-lib/js/interactionTokens/JSONWebToken';
 import { CredentialRequest } from 'jolocom-lib/js/interactionTokens/credentialRequest';
 import { IDParameters } from '../../src/plugins/types';
-import { getInfrastructure } from '../../src/utils/infrastructure';
+import { getInfrastructure, fuel } from '../../src/utils/infrastructure';
 import { SoftwareKeyProvider } from 'jolocom-lib/js/vaultedKeyProvider/softwareProvider';
 
 
 const params: IDParameters = {
     dep: {
-        endpoint: '',
-        contract: ''
+        endpoint: 'https://r2bapi.dltstax.net',
+        contract: '0x7e366e70895c0e5e49e89ef36daee017c76d6b7f'
     },
     idArgs: {
         seed: Buffer.from('b'.repeat(64), 'hex'),
@@ -25,7 +25,7 @@ const params: IDParameters = {
     }
 }
 
-const {vkp, reg, password, mRes} = getInfrastructure('henlmao' , params)
+const {vkp, reg, password, mRes} = getInfrastructure(params)
 
 // const url = 'raspberrypi.local:3000';
 const url = 'http://localhost:3000'
@@ -98,12 +98,14 @@ describe('identity interaction integration test', () => {
     const demoseed = Buffer.from('c'.repeat(64), 'hex')
 
     const demovkp = SoftwareKeyProvider.fromSeed(demoseed, demopass)
+    const joloReg = JolocomLib.registries.jolocom.create()
 
-      // idw = await reg.create(demovkp, demopass)
-    idw = await reg.authenticate(demovkp, {
+
+    // idw = await joloReg.create(demovkp, demopass)
+    idw = await joloReg.authenticate(demovkp, {
       derivationPath: JolocomLib.KeyTypes.jolocomIdentityKey,
       encryptionPass: demopass
-    });
+    })
 
     kcToken = await idw.create.interactionTokens.request.share(credReqAttrs, demopass)
     kcBody = {request: kcToken.encode(),
