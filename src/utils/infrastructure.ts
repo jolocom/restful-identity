@@ -12,7 +12,6 @@ import { IVaultedKeyProvider } from 'jolocom-lib/js/vaultedKeyProvider/types'
 import { JolocomRegistry } from 'jolocom-lib/js/registries/jolocomRegistry'
 import { publicKeyToAddress } from 'jolocom-lib/js/utils/helper'
 import { awaitPaymentTxConfirmation, fuelAddress, getStaxEndpoints } from 'jolocom-lib-stax-connector/js/utils'
-import { HardwareKeyProvider } from 'hardware_key_provider'
 import { JolocomLib } from 'jolocom-lib';
 import { IDParameters } from '../plugins/types';
 
