@@ -39,17 +39,8 @@ const httpAgent = {
     }
 }
 
-const get_vkp = (defaultPass: string, params?: IDParameters): IVaultedKeyProvider => {
-    if (params && params.idArgs) {
-        return JolocomLib.KeyProvider.fromSeed(params.idArgs.seed, params.idArgs.password);
-    }
-
-    try {
-        return new HardwareKeyProvider();
-    } catch {
-        return JolocomLib.KeyProvider.fromSeed(Buffer.from('a'.repeat(64), 'hex'), defaultPass);
-    }
-}
+const get_vkp = (params: IDParameters): IVaultedKeyProvider =>
+    JolocomLib.KeyProvider.fromSeed(params.idArgs.seed, params.idArgs.password);
 
 const get_backend = (dep?: { endpoint: string, contract: string }): { reg: JolocomRegistry, mRes: MultiResolver } => {
     if (!dep) return { reg: createJolocomRegistry(), mRes: multiResolver }
@@ -90,17 +81,12 @@ const get_backend = (dep?: { endpoint: string, contract: string }): { reg: Joloc
 }
 
 export const getInfrastructure = (
-    defaultPass: string,
-    params?: IDParameters,
-): { vkp: IVaultedKeyProvider; reg: JolocomRegistry; password: string, mRes: MultiResolver } => {
-    return {
-        vkp: get_vkp(defaultPass, params),
-        password: params && params.idArgs
-            ? params.idArgs.password
-            : defaultPass,
-        ...get_backend(params && params.dep)
-    }
-}
+    params: IDParameters,
+): { vkp: IVaultedKeyProvider; reg: JolocomRegistry; password: string, mRes: MultiResolver } => ({
+    vkp: get_vkp(params),
+    password: params.idArgs.password,
+    ...get_backend(params.dep)
+})
 
 export const fuel = async (amount: number, vkp: IVaultedKeyProvider, password: string,
     dep?: { endpoint: string, contract: string }) => {

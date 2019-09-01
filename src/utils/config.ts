@@ -40,7 +40,10 @@ export const getConfig = (args: string[]): ServerConfig => {
     } : identity && identity.seed && identity.password ? {
         seed: Buffer.from(identity.seed, 'hex'),
         password: identity.password
-    } : undefined
+    } : {
+        seed: Buffer.from('a'.repeat(64), 'hex'),
+        password: 'a'.repeat(32)
+    }
 
     return {
         IDConfig: {

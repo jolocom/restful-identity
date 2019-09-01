@@ -8,10 +8,8 @@ import {
     fuel
 } from '../utils/infrastructure'
 
-const defaultPass = 'a'.repeat(32)
-
 export default fp(async (instance: fastify.FastifyInstance, opts: IDParameters, next) => {
-    const { vkp, reg, password, mRes } = getInfrastructure(defaultPass, opts);
+    const { vkp, reg, password, mRes } = getInfrastructure(opts);
     delete opts.idArgs;
 
     const identityWallet = await reg.authenticate(vkp, {
