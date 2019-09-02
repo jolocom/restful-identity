@@ -1,6 +1,6 @@
 "use strict";
 exports.__esModule = true;
-var secure_element_1 = require("./src/utils/secure-element");
+var secure_element_1 = require("./dist/utils/secure-element");
 var ini = require("ini");
 var fs = require("fs");
 var pa = require("minimist");

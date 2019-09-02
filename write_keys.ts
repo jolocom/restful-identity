@@ -1,4 +1,4 @@
-import { readKeys } from './src/utils/secure-element'
+import { readKeys } from './dist/utils/secure-element'
 import * as ini from 'ini'
 import * as fs from 'fs'
 import * as pa from 'minimist'

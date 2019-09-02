@@ -1,4 +1,4 @@
-import { readKeys } from './src/utils/secure-element'
+import { readKeys } from './dist/utils/secure-element'
 
 const keys = readKeys()
 
