@@ -14,7 +14,7 @@ const server: fastify.FastifyInstance<
     ServerResponse
 > = fastify({
     logger: true,
-    pluginTimeout: 120000
+    pluginTimeout: 1200000
 });
 
 server.register(swagger, {
@@ -26,7 +26,7 @@ server.register(swagger, {
             version: '1.3.0'
         },
         externalDocs: {
-            url: 'https://jolocom.io',
+            url: 'https://github.com/jolocom/restful-identity',
             description: 'Find more info here'
         },
         host: 'localhost',
